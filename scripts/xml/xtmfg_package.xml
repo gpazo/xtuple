@@ -1,5 +1,5 @@
-<package id        = "manufacturing-upgrade-490RC"
-         version   = "4.9.0RC"
+<package id        = "manufacturing-upgrade-490"
+         version   = "4.9.0"
          developer = "xTuple"
          descrip   = "load PostBooks resources"
          updater   = "2.2.4" >
