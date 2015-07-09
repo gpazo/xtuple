@@ -1039,7 +1039,7 @@ white:true*/
       // entity and notified the user of mismatch? then there's no
       // abraKadabra('shiptoAddress') if they hit a stray key while tabbing
       // through the form and the on/off problem is solved as a byproduct.
-      // we could address later the problem that the View knows more about which 
+      // we could address later the problem that the View knows more about which
       // attributes are shared in relations than the ORM
       //
       // If the address was manually changed, then clear shipto
@@ -1347,7 +1347,7 @@ white:true*/
       return XM.Document.prototype.save.apply(this, arguments);
     },
 
-    validate: function () {
+    validate: function (attributes, options) {
       var that = this,
         quantity = this.get("quantity"),
         hasAltQuantity = _.contains(this.getAttributeNames(), this.altQuantityAttribute),
