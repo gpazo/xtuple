@@ -8,7 +8,7 @@ SELECT   coitem_id AS id, coitem_cohead_id AS altId,
          formatSoLineNumber(coitem_id) AS f_linenumber,
          getSoSchedDate(cohead_id) AS sort_scheddate,
          coitem.*, cohead.*,
-         cust_number, cust_name,
+         cust_number, cust_name, saletype_descr,
          item_number, item_descrip1, (item_descrip1 || ' ' || item_descrip2) AS itemdescription,
          uom_name,
          warehous_code,
@@ -81,6 +81,7 @@ SELECT   coitem_id AS id, coitem_cohead_id AS altId,
               JOIN item ON (item_id=itemsite_item_id)
               JOIN uom ON (uom_id=coitem_qty_uom_id)
               JOIN curr_symbol ON (curr_id=cohead_curr_id)
+              LEFT OUTER JOIN saletype ON (saletype_id=cohead_saletype_id)
 <? foreach("char_id_text_list") ?>
      LEFT OUTER JOIN charass charass_alias<? literal("char_id_text_list") ?> 
           ON ((charass_alias<? literal("char_id_text_list") ?>.charass_target_type='SO') 
@@ -115,12 +116,17 @@ SELECT   coitem_id AS id, coitem_cohead_id AS altId,
   <? if exists("startDate") ?>
     AND  (cohead_orderdate BETWEEN <? value("startDate") ?> AND <? value("endDate") ?>)
   <? endif ?>
-
+  <? if exists("saletype_id") ?>
+    AND  (cohead_saletype_id = <? value("saletype_id") ?>)
+  <? endif ?>
   <? if exists("salesrep_id") ?>
     AND  (cohead_salesrep_id=<? value("salesrep_id") ?>)
   <? endif ?>
   <? if exists("shipto_id") ?>
     AND  (cohead_shipto_id=<? value("shipto_id") ?>)
+  <? endif ?>
+  <? if exists("poNumber") ?>
+    AND  (cohead_custponumber ~* <? value("poNumber") ?>)
   <? endif ?>
   <? if exists("cust_id") ?>
     AND  (cohead_cust_id=<? value("cust_id") ?>)

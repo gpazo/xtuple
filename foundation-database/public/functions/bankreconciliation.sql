@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION bankReconciliation(pBankrecid INTEGER, pTask TEXT) RETURNS INTEGER AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple. 
 -- See www.xtuple.com/CPAL for the full text of the software license.
 -- posting and reopening bank reconciliations are nearly identical.
 -- the main differences revolve around what cleanup is done before starting.
@@ -216,6 +216,9 @@ BEGIN
                            source, doctype,
                            tax_sales_accnt_id, tax_dist_accnt_id, taxhist_docdate
       LOOP
+        IF (_tax.tax_sales_accnt_id IS NULL OR _tax.tax_dist_accnt_id IS NULL) THEN
+          RAISE EXCEPTION 'Cannot post this bank reconciliation due to missing Tax Code G/L Account mappings';
+        END IF;  
         SELECT insertIntoGLSeries( _sequence, _tax.source, _tax.doctype, _tax.docnumber,
                                    _tax.tax_dist_accnt_id, 
                                    _tax.taxbasevalue * _sign,

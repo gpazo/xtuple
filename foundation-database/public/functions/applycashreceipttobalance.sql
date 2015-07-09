@@ -28,6 +28,7 @@ $$ LANGUAGE 'plpgsql';
 CREATE OR REPLACE FUNCTION applyCashReceiptToBalance(INTEGER, NUMERIC, INTEGER, BOOLEAN) RETURNS INTEGER AS $$
 -- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
 -- See www.xtuple.com/CPAL for the full text of the software license.
+
 DECLARE
   pCashrcptid ALIAS FOR $1;
   pAmount ALIAS FOR $2;
@@ -41,14 +42,21 @@ DECLARE
   _docDate DATE;
   _r RECORD;
   _toApply NUMERIC;
+  _useCustGrp BOOLEAN;
 
 BEGIN
+
+-- Determine if this is a Customer or Customer Group Cash Receipt
+   SELECT CASE WHEN cashrcpt_cust_id > 0 THEN false ELSE true END INTO _useCustGrp 
+     FROM cashrcpt WHERE cashrcpt_id=pCashrcptid;
 
 --  Apply open credits first if applicable
   IF (pInclCredits) THEN
     -- First find total debits unaccounted for by this receipt so we can apply as much credit 
     -- as possible to clear, but no more
-    SELECT coalesce(noNeg(sum(currToCurr(aropen_curr_id, cashrcpt_curr_id,
+    IF (_useCustGrp) THEN
+        -- Customer Grp cash receipt
+        SELECT coalesce(noNeg(sum(currToCurr(aropen_curr_id, cashrcpt_curr_id,
          aropen_amount - aropen_paid, cashrcpt_distdate) -
          COALESCE((SELECT (SUM(cashrcptitem_amount) + SUM(cashrcptitem_discount))
                    FROM cashrcptitem, cashrcpt
@@ -57,29 +65,65 @@ BEGIN
                      AND  (NOT cashrcpt_posted)
                      AND  (cashrcpt_id != pCashrcptid)
                      AND  (cashrcptitem_aropen_id=aropen_id))), 0)) - pAmount),0)
-    INTO _toApply
-    FROM cashrcpt
-      JOIN custinfo ON (cashrcpt_cust_id=cust_id)
-      JOIN aropen ON (cust_id=aropen_cust_id)
-    WHERE ((cashrcpt_id=pCashrcptid)
-      AND (aropen_open)
-      AND (aropen_doctype IN ('I','D')));
-           
-    -- Loop through and apply credits until we account for all remaining debits we can
-    FOR _r IN 
-      SELECT aropen_id
-      FROM cashrcpt
-        JOIN custinfo ON (cashrcpt_cust_id=cust_id)
-        JOIN aropen ON (cust_id=aropen_cust_id)
-      WHERE ((cashrcpt_id=pCashrcptid)
-        AND (aropen_open)
-        AND (aropen_doctype IN ('C','R')))
-      ORDER BY aropen_duedate, aropen_docnumber
-    LOOP
-     EXIT WHEN _toApply <= 0;
-      _toApply := _toApply - applyCashReceiptLineBalance(pCashrcptid, _r.aropen_id, _toApply, pCurrId);
-    END LOOP;
-  END IF;
+	INTO _toApply
+	FROM cashrcpt 
+	JOIN custgrpitem ON (cashrcpt.cashrcpt_custgrp_id=custgrpitem_custgrp_id)
+	JOIN aropen ON (custgrpitem_cust_id=aropen_cust_id)
+	WHERE ((cashrcpt_id=pCashrcptid)
+		AND (aropen_open)
+	AND (aropen_doctype IN ('I','D')));
+
+        -- Loop through and apply credits until we account for all remaining debits we can
+	FOR _r IN 
+	  SELECT aropen_id
+	  FROM cashrcpt
+	    JOIN custgrpitem ON (cashrcpt.cashrcpt_custgrp_id=custgrpitem_custgrp_id)
+	    JOIN aropen ON (custgrpitem_cust_id=aropen_cust_id)
+          WHERE ((cashrcpt_id=pCashrcptid)
+            AND (aropen_open)
+            AND (aropen_doctype IN ('C','R')))
+          ORDER BY aropen_duedate, aropen_docnumber
+        LOOP
+        EXIT WHEN _toApply <= 0;
+         _toApply := _toApply - applyCashReceiptLineBalance(pCashrcptid, _r.aropen_id, _toApply, pCurrId);
+        END LOOP;
+        
+    ELSE -- is a Customer Cash Receipt
+    
+	SELECT coalesce(noNeg(sum(currToCurr(aropen_curr_id, cashrcpt_curr_id,
+	  aropen_amount - aropen_paid, cashrcpt_distdate) -
+	  COALESCE((SELECT (SUM(cashrcptitem_amount) + SUM(cashrcptitem_discount))
+                   FROM cashrcptitem, cashrcpt
+                   WHERE ((cashrcpt_id=cashrcptitem_cashrcpt_id)
+                     AND  (NOT cashrcpt_void)
+                     AND  (NOT cashrcpt_posted)
+                     AND  (cashrcpt_id != pCashrcptid)
+                     AND  (cashrcptitem_aropen_id=aropen_id))), 0)) - pAmount),0)
+	INTO _toApply
+	FROM cashrcpt
+	JOIN custinfo ON (cashrcpt_cust_id=cust_id)
+	JOIN aropen ON (cust_id=aropen_cust_id)
+	WHERE ((cashrcpt_id=pCashrcptid)
+	AND (aropen_open)
+	AND (aropen_doctype IN ('I','D')));
+
+	-- Loop through and apply credits until we account for all remaining debits we can
+	FOR _r IN 
+	  SELECT aropen_id
+	  FROM cashrcpt
+	    JOIN custinfo ON (cashrcpt_cust_id=cust_id)
+            JOIN aropen ON (cust_id=aropen_cust_id)
+          WHERE ((cashrcpt_id=pCashrcptid)
+            AND (aropen_open)
+            AND (aropen_doctype IN ('C','R')))
+          ORDER BY aropen_duedate, aropen_docnumber
+        LOOP
+        EXIT WHEN _toApply <= 0;
+         _toApply := _toApply - applyCashReceiptLineBalance(pCashrcptid, _r.aropen_id, _toApply, pCurrId);
+        END LOOP;
+     END IF; -- End Customer vs Customer Group
+
+  END IF;  -- End Open Credits
 
 --  Find the balance to apply
   SELECT (currToCurr(pCurrId, cashrcpt_curr_id, pAmount, cashrcpt_distdate) -
@@ -99,7 +143,7 @@ BEGIN
   END IF;
 
 --  Loop through the aropen item in order of due date, searching only for
---  aropen items that are open, for the current customer and have an outstanding balance
+--  aropen items that are open, for the current customer OR customers in the receipt customer group that have an outstanding balance
   FOR _r IN SELECT aropen_id,
                currToCurr(aropen_curr_id, cashrcpt_curr_id,
                aropen_amount - aropen_paid, cashrcpt_distdate) -
@@ -112,8 +156,7 @@ BEGIN
                              AND  (cashrcptitem_aropen_id=aropen_id))), 0) AS balance,
                    s.cashrcptitem_id AS cashrcptitem_id
             FROM cashrcpt, aropen LEFT OUTER JOIN
-                 cashrcptitem s ON (s.cashrcptitem_aropen_id=aropen_id AND s.cashrcptitem_cashrcpt_id=pCashrcptId)
-                 LEFT OUTER JOIN terms ON (aropen_terms_id=terms_id),
+                 cashrcptitem s ON (s.cashrcptitem_aropen_id=aropen_id AND s.cashrcptitem_cashrcpt_id=pCashrcptId),
                  (SELECT COALESCE(SUM(arapply_applied), 0.00) AS applied  
                   FROM arapply, aropen 
                   WHERE ((arapply_target_aropen_id=aropen_id) 
@@ -121,7 +164,9 @@ BEGIN
                     AND  (aropen_discount) )
                  ) AS data
 
-            WHERE ( (aropen_cust_id=cashrcpt_cust_id)
+            WHERE ((CASE WHEN COALESCE(cashrcpt_cust_id,0) > 0 THEN (aropen_cust_id=cashrcpt_cust_id) 
+		   ELSE (aropen_cust_id IN (SELECT custgrpitem_cust_id FROM custgrpitem WHERE custgrpitem_custgrp_id=cashrcpt.cashrcpt_custgrp_id))
+		   END )
              AND (aropen_doctype IN ('I', 'D'))
              AND (aropen_open)
              AND (cashrcpt_id=pCashrcptid) )
@@ -152,7 +197,7 @@ BEGIN
     END IF;
 
     IF (_applyAmount > 0) THEN
---  Does an cashrcptitem already exist?
+--  Does a cashrcptitem already exist?
       IF (_r.cashrcptitem_id IS NOT NULL) THEN
 --  Update the cashrcptitem with the new amount to apply
         UPDATE cashrcptitem
@@ -179,4 +224,4 @@ BEGIN
   RETURN 1;
 
 END;
-$$ LANGUAGE 'plpgsql';
+$$ LANGUAGE plpgsql;

@@ -440,6 +440,7 @@ DECLARE
   _kstat TEXT;
   _pstat TEXT;
   _result INTEGER;
+  _coheadnumber TEXT;
   _coitemid INTEGER;
   _itemsrcid INTEGER;
   _orderid INTEGER;
@@ -531,14 +532,19 @@ BEGIN
   IF (TG_OP = 'INSERT') THEN
     -- Create Purchase Request if flagged to do so
     IF ((NEW.coitem_order_type='R') AND (NEW.coitem_order_id=-1)) THEN
-      SELECT createPR(CAST(cohead_number AS INTEGER), 'S', NEW.coitem_id) INTO _orderid
-      FROM cohead
-      WHERE (cohead_id=NEW.coitem_cohead_id);
-      IF (_orderid > 0) THEN
-        UPDATE coitem SET coitem_order_id=_orderid
-        WHERE (coitem_id=NEW.coitem_id);
-      ELSE
-        RAISE EXCEPTION 'CreatePR failed, result=%', _orderid;
+      SELECT cohead_number INTO _coheadnumber
+      FROM cohead, itemsite
+      WHERE (cohead_id=NEW.coitem_cohead_id)
+        AND (itemsite_id=NEW.coitem_itemsite_id)
+        AND (NOT itemsite_stocked);
+      IF (FOUND) THEN
+        SELECT createPR(CAST(_coheadnumber AS INTEGER), 'S', NEW.coitem_id) INTO _orderid;
+        IF (_orderid > 0) THEN
+          UPDATE coitem SET coitem_order_id=_orderid
+          WHERE (coitem_id=NEW.coitem_id);
+        ELSE
+          RAISE EXCEPTION 'CreatePR failed, result=%', _orderid;
+        END IF;
       END IF;
     END IF;
 

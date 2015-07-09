@@ -9,20 +9,20 @@ DECLARE
   _scale INTEGER;
 
 BEGIN
+  SELECT * INTO _r
+  FROM locale
+  WHERE (locale_id=getUsrLocaleId());
+
+  _scale := CASE pLocale WHEN 'qtyper' THEN _r.locale_qtyper_scale
+                         WHEN 'cost' THEN _r.locale_cost_scale
+                         ELSE _r.locale_qty_scale
+            END;
+
   IF (pFractional) THEN
-    SELECT * INTO _r
-    FROM locale
-    WHERE (locale_id=getUsrLocaleId());
-
-    _scale := CASE pLocale WHEN 'qtyper' THEN _r.locale_qtyper_scale
-                           WHEN 'cost' THEN _r.locale_cost_scale
-                           ELSE _r.locale_qty_scale
-              END;
-
     RETURN ROUND(pQty, _scale);
   ELSE
-    IF (TRUNC(pQty) < pQty) THEN
-      RETURN (TRUNC(pQty) + 1);
+    IF (TRUNC(ROUND(pQty, _scale)) < ROUND(pQty, _scale)) THEN
+      RETURN (TRUNC(pQty) + 1.0);
     ELSE
       RETURN TRUNC(pQty);
     END IF;

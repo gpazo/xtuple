@@ -151,6 +151,10 @@ WHERE ( (TRUE)
  AND (shipzone_id=<? value("shipzone_id") ?>)
 <? endif ?>
 
+<? if exists("saletype_id") ?>
+  AND (cohist_saletype_id=<? value("saletype_id") ?>)
+<? endif ?>
+
 <? if exists("curr_id") ?>
  AND cust_curr_id = <? value("curr_id") ?>
 <? endif ?>
@@ -199,5 +203,8 @@ GROUP BY dummy
 <? endif ?>
 <? if exists("bySite") ?>
  , warehous_code
+<? endif ?>
+<? if exists("poNumber") ?>
+  AND  (cohist_ponumber=<? value("poNumber") ?>)
 <? endif ?>
 ;

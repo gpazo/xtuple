@@ -1,22 +1,33 @@
-CREATE OR REPLACE FUNCTION _cmitemBeforeTrigger() RETURNS "trigger" AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+CREATE OR REPLACE FUNCTION _cmitemBeforeDeleteTrigger() RETURNS TRIGGER AS $$
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple. 
 -- See www.xtuple.com/CPAL for the full text of the software license.
-DECLARE
-  _check BOOLEAN;
-  _id INTEGER;
 BEGIN
-  -- Checks
-  -- Start with privileges
-  SELECT checkPrivilege('MaintainCreditMemos') INTO _check;
-  IF NOT (_check) THEN
+  IF NOT checkPrivilege('MaintainCreditMemos') THEN
     RAISE EXCEPTION 'You do not have privileges to maintain Credit Memos.';
   END IF;
 
-  IF (TG_OP = 'DELETE') THEN
-    DELETE FROM cmitemtax
-    WHERE (taxhist_parent_id=OLD.cmitem_id);
+  DELETE FROM cmitemtax
+   WHERE (taxhist_parent_id=OLD.cmitem_id);
 
-    RETURN OLD;
+  DELETE FROM cmitemaccnt 
+   WHERE (cmitemaccnt_cmitem_id=OLD.cmitem_id);
+
+  RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+ALTER FUNCTION public._cmitemBeforeDeleteTrigger() OWNER TO admin;
+
+SELECT dropIfExists('TRIGGER', 'cmitemBeforeDeleteTrigger');
+CREATE TRIGGER cmitemBeforeDeleteTrigger BEFORE DELETE ON cmitem FOR EACH ROW EXECUTE PROCEDURE _cmitemBeforeDeleteTrigger();
+
+CREATE OR REPLACE FUNCTION _cmitemBeforeTrigger() RETURNS "trigger" AS $$
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple. 
+-- See www.xtuple.com/CPAL for the full text of the software license.
+DECLARE
+  _id INTEGER;
+BEGIN
+  IF NOT checkPrivilege('MaintainCreditMemos') THEN
+    RAISE EXCEPTION 'You do not have privileges to maintain Credit Memos.';
   END IF;
 
   IF (TG_OP = 'INSERT') THEN
@@ -37,7 +48,7 @@ $$ LANGUAGE 'plpgsql';
 
 SELECT dropIfExists('TRIGGER', 'cmitembeforetrigger');
 CREATE TRIGGER cmitembeforetrigger
-  BEFORE INSERT OR UPDATE OR DELETE
+  BEFORE INSERT OR UPDATE
   ON cmitem
   FOR EACH ROW
   EXECUTE PROCEDURE _cmitemBeforeTrigger();

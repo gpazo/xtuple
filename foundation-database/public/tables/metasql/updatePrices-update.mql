@@ -52,18 +52,22 @@ FROM selsched, item
 <? elseif reExists("prodcat") ?>
   JOIN prodcat ON (prodcat_id=item_prodcat_id)
 <? endif ?>
-WHERE ( ipsitem_item_id=item_id
-  AND selsched_ipshead_id=ipsitem_ipshead_id
+WHERE (selsched_ipshead_id=ipsitem_ipshead_id
   AND ipsitem_type='D'
 <? if exists("item_id") ?>
+  AND ipsitem_item_id=item_id
   AND item_id=<? value("item_id") ?>
 <? elseif exists("itemgrp_id") ?>
+  AND ipsitem_item_id=item_id
   AND itemgrp_id=<? value("itemgrp_id") ?>
 <? elseif exists("itemgrp_pattern") ?>
+  AND ipsitem_item_id=item_id
   AND itemgrp_name ~ <? value("itemgrp_pattern") ?>
 <? elseif exists("prodcat_id") ?>
+  AND ipsitem_prodcat_id=item_prodcat_id
   AND prodcat_id=<? value("prodcat_id") ?>
 <? elseif exists("prodcat_pattern") ?>
+  AND ipsitem_prodcat_id=item_prodcat_id
   AND prodcat_code ~ <? value("prodcat_pattern") ?>
 <? endif ?>
 );
@@ -84,18 +88,22 @@ FROM selsched, item
 <? elseif reExists("prodcat") ?>
   JOIN prodcat ON (prodcat_id=item_prodcat_id)
 <? endif ?>
-WHERE ( ipsitem_item_id=item_id
-  AND selsched_ipshead_id=ipsitem_ipshead_id
+WHERE (selsched_ipshead_id=ipsitem_ipshead_id
   AND ipsitem_type='M'
 <? if exists("item_id") ?>
+  AND ipsitem_item_id=item_id
   AND item_id=<? value("item_id") ?>
 <? elseif exists("itemgrp_id") ?>
+  AND ipsitem_item_id=item_id
   AND itemgrp_id=<? value("itemgrp_id") ?>
 <? elseif exists("itemgrp_pattern") ?>
+  AND ipsitem_item_id=item_id
   AND itemgrp_name ~ <? value("itemgrp_pattern") ?>
 <? elseif exists("prodcat_id") ?>
+  AND ipsitem_prodcat_id=item_prodcat_id
   AND prodcat_id=<? value("prodcat_id") ?>
 <? elseif exists("prodcat_pattern") ?>
+  AND ipsitem_prodcat_id=item_prodcat_id
   AND prodcat_code ~ <? value("prodcat_pattern") ?>
 <? endif ?>
 );

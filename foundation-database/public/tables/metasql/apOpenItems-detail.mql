@@ -56,7 +56,12 @@ SELECT apopen_id, apopen_ponumber, apopen_docnumber,
 <? if exists("vendtype_pattern") ?>
                 AND   (vendtype_code~<? value("vendtype_pattern") ?>)
 <? endif ?>
-                AND   (apopen_duedate BETWEEN <? value("startDate") ?> AND <? value("endDate") ?>) )
+<? if exists("startDate") ?>
+                AND   (apopen_docdate BETWEEN <? value("startDate") ?> AND <? value("endDate") ?>) )
+<? endif ?>
+<? if exists("startDueDate") ?>
+                AND   (apopen_duedate BETWEEN <? value("startDueDate") ?> AND <? value("endDueDate") ?>) )
+<? endif ?>
               GROUP BY apopen_id, apopen_ponumber, apopen_docnumber,apopen_doctype, apopen_invcnumber, apopen_docdate,
                 apopen_duedate, apopen_docdate, apopen_amount, apopen_paid, apopen_curr_id, apopen_curr_rate,
                 apopen.apopen_status, vend_number, vend_name

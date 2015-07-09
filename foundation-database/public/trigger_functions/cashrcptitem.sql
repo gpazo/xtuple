@@ -43,12 +43,13 @@ BEGIN
 
 END;
 $$ LANGUAGE 'plpgsql';
+ALTER FUNCTION public._cashRcptItemTrigger() OWNER TO admin;
 
 SELECT dropIfExists('TRIGGER', 'cashRcptItemTrigger');
 CREATE TRIGGER cashRcptItemTrigger BEFORE INSERT OR UPDATE ON cashrcptitem FOR EACH ROW EXECUTE PROCEDURE _cashRcptItemTrigger();
 
 CREATE OR REPLACE FUNCTION _cashRcptItemAfterTrigger () RETURNS TRIGGER AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple. 
 -- See www.xtuple.com/CPAL for the full text of the software license.
 DECLARE
   _total      NUMERIC;
@@ -68,7 +69,8 @@ BEGIN
   RETURN NEW;
 
 END;
-$$ LANGUAGE 'plpgsql';
+$$ LANGUAGE plpgsql;
+ALTER FUNCTION public._cashRcptItemAfterTrigger() OWNER TO admin;
 
 SELECT dropIfExists('TRIGGER', 'cashRcptItemAfterTrigger');
 CREATE TRIGGER cashRcptItemAfterTrigger AFTER INSERT OR UPDATE ON cashrcptitem FOR EACH ROW EXECUTE PROCEDURE _cashRcptItemAfterTrigger();

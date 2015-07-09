@@ -1,11 +1,12 @@
 -- Group: cashReceipts
 -- Name: detail
 -- Notes: used by dspCashReceipts
--- There are 2 display modes for this query:
--- 1) Legacy mode which uses A/R Application information
--- 2) Version 3.3.0 upgrade mode which uses Cash Receipt information
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple.
--- See www.xtuple.com/CPAL for the full text of the software license.
+--        There are 2 display modes for this query:
+--        1) Legacy mode which uses A/R Application information
+--        2) Version 3.3.0 upgrade mode which uses Cash Receipt information
+--        Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple.
+--        See www.xtuple.com/CPAL for the full text of the software license.
+--        Cash Receipts by Customer Group package - modifies display to include receipts by Customer Group.
 
 <? if exists("LegacyDisplayMode") ?>
 
@@ -186,7 +187,11 @@ SELECT id, type, cashrcpt_number, cust_number, cust_name,
 FROM (
 
 --  Cash Receipt headers
-SELECT cashrcpt_id AS id, 0 AS type, cashrcpt_number, cust_number, cust_name,
+SELECT cashrcpt_id AS id, 0 AS type, cashrcpt_number, 
+       CASE WHEN (cashrcpt_cust_id <> -1) THEN cust_number 
+		ELSE (SELECT custgrp_name FROM custgrp WHERE custgrp_id=cashrcpt_custgrp_id) END AS cust_number,
+       CASE WHEN (cashrcpt_cust_id <> -1) THEN cust_name
+		ELSE (SELECT custgrp_descrip FROM custgrp WHERE custgrp_id=cashrcpt_custgrp_id) END AS cust_name,
        cashrcpt_distdate AS postdate, cashrcpt_posted AS posted, cashrcpt_void AS voided,
        ( CASE WHEN (cashrcpt_fundstype='C') THEN <? value("check") ?>
               WHEN (cashrcpt_fundstype='T') THEN <? value("certifiedCheck") ?>
@@ -211,14 +216,19 @@ SELECT cashrcpt_id AS id, 0 AS type, cashrcpt_number, cust_number, cust_name,
        cashrcpt_distdate AS sortdate,
        0 AS base_applied_xttotalrole,
        -1 AS arapply_id
-FROM cashrcpt JOIN custinfo ON (cust_id=cashrcpt_cust_id) LEFT OUTER JOIN custgrpitem ON (custgrpitem_cust_id=cust_id)
+FROM cashrcpt 
+LEFT OUTER JOIN custinfo ON (cust_id=cashrcpt_cust_id) 
+LEFT OUTER JOIN custgrpitem ON (custgrpitem_cust_id=cust_id)
 WHERE ( (cashrcpt_distdate BETWEEN <? value("startDate") ?> AND <? value("endDate") ?>)
 <? if exists("cust_id") ?>
-  AND   (cust_id=<? value("cust_id") ?>)
+  AND   (cashrcpt_cust_id=<? value("cust_id") ?>
+        OR cashrcpt_id IN (SELECT cashrcpt_id FROM cashrcpt, cashrcptitem 
+			     WHERE cashrcpt_id=cashrcptitem_cashrcpt_id
+ 				AND cashrcptitem_cust_id=<? value("cust_id") ?>)  )
 <? elseif exists("custtype_id") ?>
   AND   (cust_custtype_id=<? value("custtype_id") ?>)
 <? elseif exists("custgrp_id") ?>
-  AND   (custgrpitem_custgrp_id=<? value("custgrp_id") ?>)
+  AND   (cashrcpt_custgrp_id=<? value("custgrp_id") ?>)
 <? elseif exists("custtype_pattern") ?>
   AND   (cust_custtype_id IN (SELECT custtype_id FROM custtype WHERE (custtype_code ~ <? value("custtype_pattern") ?>)))
 <? endif ?>
@@ -229,7 +239,7 @@ WHERE ( (cashrcpt_distdate BETWEEN <? value("startDate") ?> AND <? value("endDat
 
 --  Cash Receipt items
 UNION
-SELECT cashrcpt_id AS id, 1 AS type, '', '', '',
+SELECT cashrcpt_id AS id, 1 AS type, '', cust_number, cust_name,
        cashrcpt_distdate AS postdate, cashrcpt_posted AS posted, cashrcpt_void AS voided,
        '' AS source,
        cashrcpt_id AS source_xtidrole,
@@ -246,21 +256,23 @@ SELECT cashrcpt_id AS id, 1 AS type, '', '', '',
        cashrcpt_distdate AS sortdate,
        -1 AS base_applied_xttotalrole,
        arapply_id
-FROM cashrcpt JOIN custinfo ON (cust_id=cashrcpt_cust_id)
-              LEFT OUTER JOIN custgrpitem ON (custgrpitem_cust_id=cust_id)
-              JOIN cashrcptitem ON (cashrcptitem_cashrcpt_id=cashrcpt_id)
-              JOIN aropen ON (aropen_id=cashrcptitem_aropen_id)
-              LEFT OUTER JOIN arapply ON ((arapply_target_aropen_id=aropen_id OR
-                                          arapply_source_aropen_id=aropen_id) AND
-                                          arapply_reftype='CRA' AND
-                                          arapply_ref_id=cashrcptitem_id)
+FROM cashrcpt 
+        JOIN cashrcptitem ON (cashrcptitem_cashrcpt_id=cashrcpt_id)
+	LEFT OUTER JOIN custinfo ON (cust_id=cashrcptitem_cust_id)
+	LEFT OUTER JOIN custgrpitem ON (custgrpitem_cust_id=cust_id)
+        JOIN aropen ON (aropen_id=cashrcptitem_aropen_id)
+        LEFT OUTER JOIN arapply ON ((arapply_target_aropen_id=aropen_id OR
+                                     arapply_source_aropen_id=aropen_id) AND
+                                     arapply_reftype='CRA' AND
+                                     arapply_ref_id=cashrcptitem_id)
 WHERE ( (cashrcpt_distdate BETWEEN <? value("startDate") ?> AND <? value("endDate") ?>)
 <? if exists("cust_id") ?>
-  AND   (cust_id=<? value("cust_id") ?>)
+  AND   (cust_id=<? value("cust_id") ?>
+         OR cashrcptitem_cust_id=<? value("cust_id") ?>)
 <? elseif exists("custtype_id") ?>
   AND   (cust_custtype_id=<? value("custtype_id") ?>)
 <? elseif exists("custgrp_id") ?>
-  AND   (custgrpitem_custgrp_id=<? value("custgrp_id") ?>)
+  AND   (cashrcpt_custgrp_id=<? value("custgrp_id") ?>)
 <? elseif exists("custtype_pattern") ?>
   AND   (cust_custtype_id IN (SELECT custtype_id FROM custtype WHERE (custtype_code ~ <? value("custtype_pattern") ?>)))
 <? endif ?>
@@ -283,7 +295,7 @@ SELECT cashrcpt_id AS id, 1 AS type, '', '', '',
        cashrcpt_distdate AS sortdate,
        -1 AS base_applied_xttotalrole,
        arapply_id
-FROM cashrcpt JOIN custinfo ON (cust_id=cashrcpt_cust_id)
+FROM cashrcpt JOIN cust ON (cust_id=cashrcpt_cust_id)
               LEFT OUTER JOIN custgrpitem ON (custgrpitem_cust_id=cust_id)
               JOIN cashrcptmisc ON (cashrcptmisc_cashrcpt_id=cashrcpt_id)
               LEFT OUTER JOIN arapply ON (arapply_reftype='CRD' AND
@@ -305,5 +317,4 @@ WHERE ( (cashrcpt_distdate BETWEEN <? value("startDate") ?> AND <? value("endDat
   ) AS data
 ORDER BY sortdate, id, type, target;
 
-<? endif ?>
 

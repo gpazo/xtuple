@@ -105,6 +105,9 @@ WHERE ( (true)
 <? if exists("saletype_id") ?>
   AND (cohist_saletype_id=<? value("saletype_id") ?>)
 <? endif ?>
+<? if exists("poNumber") ?>
+   AND (cohist_ponumber=<? value("poNumber") ?>)
+<? endif ?>
       )
 GROUP BY cohead_id, cust_id, cust_number, custtype_id,
          cohist_cust_id, custtype_code, currAbbr,

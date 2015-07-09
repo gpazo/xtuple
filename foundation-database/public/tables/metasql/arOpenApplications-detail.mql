@@ -1,8 +1,10 @@
 -- Group: arOpenApplications
 -- Name: detail
 -- Notes: used by applyARCreditMemo, cashReceipt
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple.
--- See www.xtuple.com/CPAL for the full text of the software license.
+--        Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple.
+--        See www.xtuple.com/CPAL for the full text of the software license.
+--        
+-- Modified Jan 2011 for Cash Receipt by Customer Group
 
 SELECT *,
        'curr' AS balance_xtnumericrole,
@@ -33,6 +35,7 @@ FROM (SELECT
        cashrcpt_curr_id,
        cashrcpt_distdate,
 <? endif ?>
+       cust_number, cust_name,
        aropen_doctype AS doctype,
        aropen_docnumber, aropen_ordernumber,
        aropen_docdate, aropen_duedate,
@@ -60,7 +63,9 @@ FROM (SELECT
 <? endif ?>
        calcpendingarapplications(aropen_id) AS pending,
        currConcat(aropen_curr_id) AS pending_curr
- FROM aropen LEFT OUTER JOIN
+ FROM aropen 
+ JOIN custinfo ON aropen_cust_id = cust_id 
+ LEFT OUTER JOIN
  <? if exists("cashrcpt_id") ?>
       cashrcptitem s ON (s.cashrcptitem_aropen_id=aropen_id
                      AND cashrcptitem_cashrcpt_id=<? value("cashrcpt_id") ?>)
@@ -83,6 +88,11 @@ FROM (SELECT
 <? else ?>
    AND (aropen_doctype IN ('D', 'I'))
 <? endif ?>
-   AND (aropen_cust_id=<? value("cust_id") ?>) )
+   AND ((aropen_cust_id=<? value("cust_id") ?>)
+     <? if exists("custgrp_id") ?>
+      OR aropen_cust_id IN (SELECT custgrpitem_cust_id from custgrpitem 
+		WHERE custgrpitem_custgrp_id=<? value("custgrp_id") ?>)
+     <? endif ?>)
+   )
  ) AS dummy
  ORDER BY aropen_duedate, balance;

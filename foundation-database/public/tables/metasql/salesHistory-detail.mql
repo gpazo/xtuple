@@ -109,6 +109,9 @@ WHERE ( (true)
 <? if exists("cohead_id") ?>
   AND (cohead_id=<? value("cohead_id") ?>)
 <? endif ?>
+<? if exists("poNumber") ?>
+  AND  (cohist_ponumber=<? value("poNumber") ?>)
+<? endif ?>
       )
 ORDER BY cohist_invcdate, itemnumber;
 

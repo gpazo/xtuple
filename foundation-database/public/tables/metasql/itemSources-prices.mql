@@ -25,18 +25,19 @@ SELECT itemsrcp_id, itemsrc_id,
              END) AS price_local,
        CASE WHEN (itemsrcp_type='N') THEN <? value("nominal") ?>
             WHEN (itemsrcp_type='D') THEN <? value("discount") ?>
-            ELSE 'error'
+            ELSE 'N/A'
        END AS type,
        CASE WHEN (itemsrcp_type='N') THEN <? value("price") ?>
             WHEN ((itemsrcp_type='D') AND (COALESCE(itemsrcp_discntprcnt, 0.0)=0.0) AND (COALESCE(itemsrcp_fixedamtdiscount, 0.0)<>0.0)) THEN <? value("fixed") ?>
             WHEN ((itemsrcp_type='D') AND (COALESCE(itemsrcp_discntprcnt, 0.0)<>0.0) AND (COALESCE(itemsrcp_fixedamtdiscount, 0.0)=0.0)) THEN <? value("percent") ?>
             WHEN (itemsrcp_type='D') THEN <? value("mixed") ?>
-            ELSE 'error'
+            ELSE 'N/A'
        END AS method,
        'qty' AS itemsrc_invvendoruomratio_xtnumericrole,
        'qty' AS itemsrc_minordqty_xtnumericrole,
        'qty' AS itemsrc_ordqtymult_xtnumericrole,
        'qty' AS itemsrcp_qtybreak_xtnumericrole,
+       'N/A' AS itemsrcp_qtybreak_xtnullrole,
        'purchprice' AS price_local_xtnumericrole,
        'purchprice' AS price_base_xtnumericrole,
        'percent' AS itemsrcp_discntprcnt_xtnumericrole,
@@ -57,7 +58,7 @@ SELECT itemsrcp_id, itemsrc_id,
 FROM itemsrc JOIN vendinfo ON (vend_id=itemsrc_vend_id AND vend_active)
              JOIN item ON (item_id=itemsrc_item_id)
              JOIN uom ON (uom_id=item_inv_uom_id)
-             JOIN itemsrcp ON (itemsrcp_itemsrc_id=itemsrc_id)
+             LEFT OUTER JOIN itemsrcp ON (itemsrcp_itemsrc_id=itemsrc_id)
              LEFT OUTER JOIN contrct ON (contrct_id=itemsrc_contrct_id)
              LEFT OUTER JOIN whsinfo ON (warehous_id=itemsrcp_warehous_id)
 WHERE ((true)
