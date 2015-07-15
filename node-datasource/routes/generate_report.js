@@ -255,6 +255,7 @@ regexp:true, undef:true, strict:true, trailing:true, white:true */
      */
     var responseDisplay = function (res, data, done) {
       res.header("Content-Type", "application/pdf");
+
       res.send(data);
       done();
     };
@@ -693,6 +694,7 @@ regexp:true, undef:true, strict:true, trailing:true, white:true */
           res.send({isError: true, error: err});
           return;
         }
+
         // Send the appropriate response back the client
         responseFunctions[req.query.action || "display"](res, data, done);
       });
@@ -737,19 +739,17 @@ regexp:true, undef:true, strict:true, trailing:true, white:true */
           args.push("-param=" + param);
         });
       } else {
-        _.each([req.query.param], function (param) {
-          args.push("-param=" + "%@::%@=%@".f(param.name, param.type, param.value));
-        });
+        args.push("-param=" + req.query.param);
       }
-      // If print, we're done here... This should be handled in async.series below.
-      if (req.query.action === "print") {
-        child_process.execFile("rptrender", args, done, function (error, results) {
+      
+      child_process.execFile("rptrender", args, null, function (error, stdout) {
+        if (error) {
+          res.send({error: error});
+        } else if (printer) {
           res.send({message: "Print Success!"});
-          return results;
-        });
-      } else {
-        child_process.execFile("rptrender", args, done);
-      }
+        }
+        done();
+      });
     };
 
     //
@@ -761,7 +761,7 @@ regexp:true, undef:true, strict:true, trailing:true, white:true */
     // https://localhost/demo_dev/generate-report?nameSpace=ORPT&type=AROpenItems&param=startDate:date=%272007-01-01%27
     // https://localhost:8443/dev/generate-report?nameSpace=ORPT&type=Invoice&param=invchead_id::integer=128&param=showcosts::boolean=true
     if (req.query.nameSpace === "ORPT") {
-      var printAry = printer ? [execOpenRPT] : [
+      var printAry = printer ? [execOpenRPT] : [ // If the printer is defined, call `execOpenRPT` only 
         createTempDir,
         createTempOrgDir,
         execOpenRPT,
@@ -770,7 +770,7 @@ regexp:true, undef:true, strict:true, trailing:true, white:true */
       ];
       async.series(printAry, function (err, results) {
         if (err) {
-          res.send({isError: true, message: err.description});
+          res.send({Error: results});
         }
       });
 
@@ -791,7 +791,7 @@ regexp:true, undef:true, strict:true, trailing:true, white:true */
       cleanUpFiles
     ], function (err, results) {
       if (err) {
-        res.send({isError: true, message: err.description});
+        res.send({Error: results});
       }
     });
   };

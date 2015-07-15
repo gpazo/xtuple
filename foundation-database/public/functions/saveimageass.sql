@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION saveImageAss(TEXT, INTEGER, CHAR, INTEGER) RETURNS INTEGER AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple.
 -- See www.xtuple.com/CPAL for the full text of the software license.
 DECLARE
   pSource 	ALIAS FOR $1;
@@ -37,7 +37,8 @@ BEGIN
     WHERE (imageass_id=_imageassId);
   ELSE
     _imageassId := NEXTVAL('imageass_imageass_id_seq');
-    INSERT INTO imageass VALUES (_imageassId,pSourceId,pSource,pImageid,CASE WHEN pSource='I' THEN pPurpose ELSE 'M' END);
+    INSERT INTO imageass (imageass_id, imageass_source_id, imageass_source, imageass_image_id, imageass_purpose)
+      VALUES (_imageassId, pSourceId, pSource, pImageid, CASE WHEN pSource='I' THEN pPurpose ELSE 'M' END);
   END IF;
   
   RETURN _imageassId;

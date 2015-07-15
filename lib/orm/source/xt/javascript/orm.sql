@@ -625,7 +625,7 @@ select xt.install_js('XT','Orm','xtuple', $$
           /* handle the nested and natural key cases */
           if (prop.toOne.isNested === true || nkey) {
             col = col.replace('{select}',
-               SELECT.replace('{columns}',  prop.toOne.isNested ? '"' + type + '"' : nkey)
+               SELECT.replace('{columns}',  prop.toOne.isNested ? '"' + type + '"' : '"' + nkey + '"')
                      .replace('{table}',  table)
                      .replace('{conditions}', conditions))
                      .replace('{alias}', alias)
@@ -644,7 +644,7 @@ select xt.install_js('XT','Orm','xtuple', $$
           iorm = Orm.fetch(base.nameSpace, toMany.type, {superUser: true});
           pkey = Orm.primaryKey(iorm);
           nkey = Orm.naturalKey(iorm);
-          column = toMany.isNested ? type : nkey;
+          column = toMany.isNested ? type : '"' + nkey + '"';
           col = 'array({select}) as "{alias}"',
           orderBy2 = 'order by ' + pkey;
 

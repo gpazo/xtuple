@@ -501,6 +501,8 @@ strict: false*/
           {kind: "onyx.GroupboxHeader", content: "_default".loc()},
           {kind: "XV.PriorityPicker", attr: "DefaultPriority",
             label: "_priority".loc()},
+          {kind: "onyx.GroupboxHeader", content: "_workflow".loc()},
+          {kind: "XV.CheckboxWidget", attr: "TriggerWorkflow", label: "_triggerWorkflow".loc()},
           {kind: "onyx.GroupboxHeader", content: "_creditCard".loc()},
           {kind: "XV.ScrollableGroupbox", name: "mainGroup", classes: "in-panel", components: [
             {kind: "XV.CreditCardGatewayCombobox", attr: "CCCompany",
@@ -579,36 +581,10 @@ strict: false*/
     save: function () {
       var that = this,
         orderModel = this.value.getValue("order"),
-        reportName = this.$.formPicker.value.getValue("reportName"),
-        editableModel = orderModel.editableModel,
-        model,
-        modelFetched = function (resp) {
-          // The base model is fetched, print it.
-          that.print({model: model, reportName: reportName, printer: that.$.printer.value.id});
-          return that.doPrevious();
-        };
+        reportName = this.$.formPicker.value.getValue("reportName");
 
-      // Replace the order widget's model with the appropriate base model
-      if (editableModel && reportName) {
-        switch (editableModel)
-        {
-        case "XM.SalesOrder":
-          model = new XM.SalesOrder();
-          model.fetch({id: orderModel.id, success: modelFetched});
-          break;
-        case "XM.PurchaseOrder":
-          model = new XM.PurchaseOrder();
-          model.fetch({id: orderModel.id, success: modelFetched});
-          break;
-        case "XM.Invoice":
-          model = new XM.Invoice();
-          model.fetch({id: orderModel.id, success: modelFetched});
-          break;
-        }
-      } else {
-        this.print({model: orderModel, reportName: reportName, printer: this.$.printer.value});
-        return this.doPrevious();
-      }
+      this.print({model: orderModel, reportName: reportName, printer: this.$.printer.getValue.id});
+      return this.doPrevious();
     },
     /**
       Keep the Save (print) button disabled.

@@ -1,100 +1,825 @@
 update source set source_charass = '', source_docass = '';
+
 -- TATC for Time Attendance?
-select createDoctype( 1, 'ADDR', 'ADDR', 'ADDR',   'Address',          'addr',     'addr_id',     'addr_number',      'addr_line1',    'addr_line2',
-                     '', '', 'addr_id', '', '');
-select createDoctype( 2, 'BBH',  'BBH', '',      'Breeder BOM Head', 'bbomhead', 'bbomhead_id', 'bbomhead_docnum',  'item_number',   'firstline(item_descrip1)',
-                     '', 'join item on bomhead_item_id = item_id', 'bomhead_id', 'bom');
-select createDoctype( 3, 'BBI',  'BBI', '',      'Breeder BOM Item', 'bbomitem', 'bbomitem_id', 'bbomitem_seqnumber::text',   'item_number',   'firstline(item_descrip1)',
-                     '', 'join item on bbomitem_item_id = item_id', 'bbomitem_id', 'bbom');
-select createDoctype( 4, 'BMH',  'BMH', '',      'BOM Head',         'bomhead',  'bomhead_id',  'bomhead_docnum',   'item_number',   'firstline(item_descrip1)',
-                     '', 'join item on bomhead_item_id = item_id', 'bomhead_id', 'bom');
-select createDoctype( 5, 'BMI',  'BMI', '',      'BOM Item',         'bomitem', 'bomitem_id', 'p.item_number',      'c.item_number', 'firstline(c.item_descrip1)',
-                     '', 'join item p on bomitem_parent_item_id = p.item_id join item c on bomitem_item_id = c.item_id');
-select createDoctype( 6, 'BOH',  'BOH', '',      'Routing Head',     'boohead', 'boohead_id', 'boohead_docnum',      'item_number', 'firstline(item_descrip1)',
-                     '', 'join item on boohead_item_id = item_id');
-select createDoctype( 7, 'BOI',  'BOI', '',      'Routing Item',     'booitem', 'booitem_id', 'booitem_seqnumber::text',      'item_number', 'firstline(item_descrip1)',
-                     '', 'join item on booitem_item_id = item_id');
-select createDoctype( 8, 'CRMA', 'CRMA', 'CRMACCT','Account',          'crmacct', 'crmacct_id', 'crmacct_number',     'crmacct_name',  'firstline(crmacct_notes)',
-                     'core', '',     'crmacct_id', 'crmaccount');
-select createDoctype( 9, 'T',    'T', 'CNTCT',   'Contact',          'cntct',   'cntct_id',   'cntct_number',       'cntct_name',    'cntct_title',
-                     '', '',     'cntct_id',   'contact');
-select createDoctype(10, 'CNTR', 'CNTR', '',       'Contract',         'cntrct',  'cntrct_id',  'cntrct_number',      'vend_name',     'cntrct_descrip',
-                     '', 'join vendinfo on cntrct_vend_id = vendid', 'cntrct_id',  'contrct');
-select createDoctype(11, 'CM',   'CM', '',      'Return',           'cmhead',  'cmhead_id',  'cmhead_number',      'cust_name',     'firstline(cmhead_comments)',
-                     '', 'join custinfo on cmhead_cust_id = cust_id', 'cmhead_id', 'creditMemo');
-select createDoctype(12, 'CMI',  'CMI', '',      'Return Item',      'cmitem',  'cmitem_id',  'cmhead_number',      'cust_name',     'item_number',
-                     '', 'join cmhead on cmitem_cmhead_id=cmhead_id join custinfo on cmhead_cust_id=cust_id ' ||
-                     'join itemsite on cmitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id');
-select createDoctype(13, 'C',    'C', 'C', 'Customer',         'custinfo',  'cust_id',  'cust_number',        'cust_name',     'firstline(cust_comments)',
-                     '', '',     'cust_id',    'customer');
-select createDoctype(14, 'EMP',  'EMP', 'EMP', 'Employee',         'emp',     'emp_id',     'emp_number',         'cntct_name',    'cntct_title',
-                     'core', 'left outer join cntct on emp_cntct_id = cntct_id', 'emp_id', 'employee');
-select createDoctype(15, 'INCDT', 'INCDT',  'INCDT', 'Incident',         'incdt',   'incdt_id',   'incdt_number::text', 'incdt_summary', 'firstline(incdt_descrip)',
-                     'core', '',     'incdt_id',         'incident', 'MaintainPersonalIncidents MaintainAllIncidents');
-select createDoctype(16, 'INV',  'INV', 'INV', 'Invoice',          'invchead','invchead_id','invchead_invcnumber','cust_name', 'firstline(invchead_notes)',
-                     'core', 'join custinfo on invchead_cust_id = cust_id', 'invchead_id', 'invoice');
-select createDoctype(17, 'INVI', 'INVI', '',     'Invoice Item',     'invcitem','invcitem_id','invchead_invcnumber','cust_name', 'item_number', '',
+
+select createDoctype(1, --pDocAssNum
+                     'ADDR', --pType
+                     'ADDR', --pDocAss
+                     'ADDR', --pCharAss
+                     'Address', --pFull
+                     'addr', --pTable
+                     'addr_id', --pKey
+                     'addr_number', --pNumber
+                     'addr_line1', --pName
+                     'addr_line2', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     'addr_id', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(2, --pDocAssNum
+                     'BBH', --pType
+                     'BBH', --pDocAss
+                     '', --pCharAss
+                     'Breeder BOM Head', --pFull
+                     'bbomhead', --pTable
+                     'bbomhead_id', --pKey
+                     'bbomhead_docnum', --pNumber
+                     'item_number', --pName --pName
+                     'firstline(item_descrip1)', --pDesc
+                     '', --pWidget
+                     'join item on bomhead_item_id = item_id', --pJoin
+                     'bomhead_id', --pParam
+                     'bom', --pUi
+                     '', --pPriv
+                     'Products' --pModule
+);
+select createDoctype(3, --pDocAssNum
+                     'BBI', --pType
+                     'BBI', --pDocAss
+                     '', --pCharAss
+                     'Breeder BOM Item', --pFull
+                     'bbomitem', --pTable
+                     'bbomitem_id', --pKey
+                     'bbomitem_seqnumber::text', --pNumber
+                     'item_number', --pName
+                     'firstline(item_descrip1)', --pDesc
+                     '', --pWidget --pWidget
+                     'join item on bbomitem_item_id = item_id', --pJoin
+                     'bbomitem_id', --pParam
+                     'bbom', --pUi
+                     '', --pPriv
+                     'Products' --pModule
+);
+select createDoctype(4, --pDocAssNum
+                     'BMH', --pType
+                     'BMH', --pDocAss
+                     '', --pCharAss
+                     'BOM Head', --pFull
+                     'bomhead', --pTable
+                     'bomhead_id', --pKey
+                     'bomhead_docnum', --pNumber
+                     'item_number', --pName
+                     'firstline(item_descrip1)', --pDesc
+                     '', --pWidget
+                     'join item on bomhead_item_id = item_id', --pJoin
+                     'bomhead_id', --pParam
+                     'bom', --pUi
+                     '', --pPriv
+                     'Products' --pModule
+);
+select createDoctype(5, --pDocAssNum
+                     'BMI', --pType
+                     'BMI', --pDocAss
+                     '', --pCharAss
+                     'BOM Item', --pFull
+                     'bomitem', --pTable
+                     'bomitem_id', --pKey
+                     'p.item_number', --pNumber
+                     'c.item_number', --pName
+                     'firstline(c.item_descrip1)', --pDesc
+                     '', --pWidget
+                     'join item p on bomitem_parent_item_id = p.item_id join item c on bomitem_item_id = c.item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Products' --pModule
+);
+select createDoctype(6, --pDocAssNum
+                     'BOH', --pType
+                     'BOH', --pDocAss
+                     '', --pCharAss
+                     'Routing Head', --pFull
+                     'boohead', --pTable
+                     'boohead_id', --pKey
+                     'boohead_docnum', --pNumber
+                     'item_number', --pName
+                     'firstline(item_descrip1)', --pDesc
+                     '', --pWidget
+                     'join item on boohead_item_id = item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Products' --pModule
+);
+select createDoctype(7, --pDocAssNum
+                     'BOI', --pType
+                     'BOI', --pDocAss
+                     '', --pCharAss
+                     'Routing Item', --pFull
+                     'booitem', --pTable
+                     'booitem_id', --pKey
+                     'booitem_seqnumber::text', --pNumber
+                     'item_number', --pName
+                     'firstline(item_descrip1)', --pDesc
+                     '', --pWidget
+                     'join item on booitem_item_id = item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Products' --pModule
+);
+select createDoctype(8, --pDocAssNum
+                     'CRMA', --pType
+                     'CRMA', --pDocAss
+                     'CRMACCT', --pCharAss
+                     'Account', --pFull
+                     'crmacct', --pTable
+                     'crmacct_id', --pKey
+                     'crmacct_number', --pNumber
+                     'crmacct_name', --pName
+                     'firstline(crmacct_notes)', --pDesc
+                     'core', --pWidget
+                     '', --pJoin
+                     'crmacct_id', --pParam
+                     'crmaccount', --pUi
+                     '', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(9, --pDocAssNum
+                     'T', --pType
+                     'T', --pDocAss
+                     'CNTCT', --pCharAss
+                     'Contact', --pFull
+                     'cntct', --pTable
+                     'cntct_id', --pKey
+                     'cntct_number', --pNumber
+                     'cntct_name', --pName
+                     'cntct_title', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     'cntct_id', --pParam
+                     'contact', --pUi
+                     '', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(10, --pDocAssNum
+                     'CNTR', --pType
+                     'CNTR', --pDocAss
+                     '', --pCharAss
+                     'Contract', --pFull
+                     'cntrct', --pTable
+                     'cntrct_id', --pKey
+                     'cntrct_number', --pNumber
+                     'vend_name', --pName
+                     'cntrct_descrip', --pDesc
+                     '', --pWidget
+                     'join vendinfo on cntrct_vend_id = vendid', --pJoin
+                     'cntrct_id', --pParam
+                     'contrct', --pUi
+                     '', --pPriv
+                     'System' --pModule
+);
+select createDoctype(11, --pDocAssNum
+                     'CM', --pType
+                     'CM', --pDocAss
+                     '', --pCharAss
+                     'Return', --pFull
+                     'cmhead', --pTable
+                     'cmhead_id', --pKey
+                     'cmhead_number', --pNumber
+                     'cust_name', --pName
+                     'firstline(cmhead_comments)', --pDesc
+                     '', --pWidget
+                     'join custinfo on cmhead_cust_id = cust_id', --pJoin
+                     'cmhead_id', --pParam
+                     'creditMemo', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(12, --pDocAssNum
+                     'CMI', --pType
+                     'CMI', --pDocAss
+                     '', --pCharAss
+                     'Return Item', --pFull
+                     'cmitem', --pTable
+                     'cmitem_id', --pKey
+                     'cmhead_number', --pNumber
+                     'cust_name', --pName
+                     'item_number', --pDesc
+                     '', --pWidget
+                     'join cmhead on cmitem_cmhead_id=cmhead_id join custinfo on cmhead_cust_id=cust_id ' ||
+                        'join itemsite on cmitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id' --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(13, --pDocAssNum
+                     'C', --pType
+                     'C', --pDocAss
+                     'C', --pCharAss
+                     'Customer', --pFull
+                     'custinfo', --pTable
+                     'cust_id', --pKey
+                     'cust_number', --pNumber
+                     'cust_name', --pName
+                     'firstline(cust_comments)', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     'cust_id', --pParam
+                     'customer', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(14, --pDocAssNum
+                     'EMP', --pType
+                     'EMP', --pDocAss
+                     'EMP', --pCharAss
+                     'Employee', --pFull
+                     'emp', --pTable
+                     'emp_id', --pKey
+                     'emp_number', --pNumber
+                     'cntct_name', --pName
+                     'cntct_title', --pDesc
+                     'core', --pWidget
+                     'left outer join cntct on emp_cntct_id = cntct_id', --pJoin
+                     'emp_id', --pParam
+                     'employee', --pUi
+                     '', --pPriv
+                     'System' --pModule
+);
+select createDoctype(15, --pDocAssNum
+                     'INCDT', --pType
+                     'INCDT', --pDocAss
+                     'INCDT', --pCharAss
+                     'Incident', --pFull
+                     'incdt', --pTable
+                     'incdt_id', --pKey
+                     'incdt_number::text', --pNumber
+                     'incdt_summary', --pName
+                     'firstline(incdt_descrip)', --pDesc
+                     'core', --pWidget
+                     '', --pJoin
+                     'incdt_id', --pParam
+                     'incident', --pUi
+                     'MaintainPersonalIncidents MaintainAllIncidents', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(16, --pDocAssNum
+                     'INV', --pType
+                     'INV', --pDocAss
+                     'INV', --pCharAss
+                     'Invoice', --pFull
+                     'invchead', --pTable
+                     'invchead_id', --pKey
+                     'invchead_invcnumber', --pNumber
+                     'cust_name', --pName
+                     'firstline(invchead_notes)', --pDesc
+                     'core', --pWidget
+                     'join custinfo on invchead_cust_id = cust_id', --pJoin
+                     'invchead_id', --pParam
+                     'invoice', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(17, --pDocAssNum
+                     'INVI', --pType
+                     'INVI', --pDocAss
+                     '', --pCharAss
+                     'Invoice Item', --pFull
+                     'invcitem', --pTable
+                     'invcitem_id', --pKey
+                     'invchead_invcnumber', --pNumber
+                     'cust_name', --pName
+                     'item_number', --pDesc
+                     '', --pWidget
                      'join invchead on invcitem_invchead_id = invchead_id ' ||
-                     'join custinfo on invchead_cust_id = cust_id join item on invcitem_item_id=item_id');
-select createDoctype(18, 'I',    'I', 'I', 'Item',             'item',    'item_id',    'item_number',         'firstline(item_descrip1)', 'firstline(item_descrip2)',
-                     'core', '',     'item_id',    'item');
-select createDoctype(19, 'IS',   'IS', '',   'Item Site',        'itemsite','itemsite_id','item_number',         'warehous_code', 'firstline(item_descrip1)',
-                     '', 'join item on itemsite_item_id = item_id join whsinfo on itemsite_item_id = warehous_id');
-select createDoctype(20, 'IR',   'IR', '',   'Item Source',      'itemsrc', 'itemsrc_id', 'item_number',         'vend_name',     'firstline(item_descrip1)',
-                     '', 'join item on itemsrc_item_id = item_id join vendinfo on itemsrc_vend_id = vend_id', 'itemsrc_id', 'itemSource');
-select createDoctype(21, 'L',    'L', '',  'Location',         'location','location_id','location_formatname', 'warehous_code', 'NULL',
-                     '', 'join whsinfo on location_warehous_id = warehous_id');
-select createDoctype(22, 'LS',   'LS', 'LS', 'Lot/Serial',       'ls',      'ls_id',      'ls_number',           'item_number',   'firstline(ls_notes)',
-                     '', 'join item on ls_item_id = item_id', 'ls_id', 'lotSerial');
-select createDoctype(23, 'OPP',  'OPP', 'OPP', 'Opportunity',      'ophead',  'ophead_id',  'ophead_id::text',     'ophead_name',   'firstline(ophead_notes)',
-                     'core', '',     'ophead_id', 'opportunity', 'MaintainPersonalOpportunities MaintainAllOpportunities');
-select createDoctype(24, 'J',    'J',   'PROJ','Project',          'prj',     'prj_id',     'prj_number',          'prj_name',      'firstline(prj_descrip)',
-                     'core', '',     'prj_id',     'project',     'MaintainPersonalProjects MaintainAllProjects');
-select createDoctype(25, 'P',    'P',  'PO', 'Purchase Order',      'pohead',  'pohead_id',  'pohead_number',      'vend_name',     'firstline(pohead_comments)',
-                     'core', 'join vendinfo on pohead_vend_id = vend_id', 'pohead_id', 'purchaseOrder');
-select createDoctype(26, 'PI',   'PI', '',   'Purchase Order Item', 'poitem',  'poitem_id',  'pohead_number',      'vend_name',     'item_number',
-                     '', 'join pohead on poitem_pohead_id=pohead_id join vendinfo on pohead_vend_id=vend_id ' ||
-                     'join itemsite on poitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id');
-select createDoctype(27, 'RA',   'RA', '',   'Return Authorization', 'rahead',  'rahead_id',  'rahead_number',       'cust_name',     'firstline(rahead_notes)',
-                     '', 'join custinfo on rahead_cust_id = cust_id', 'rahead_id', 'purchaseOrder');
-select createDoctype(28, 'RI',   'RI', '',   'Return Authorization Item', 'raitem',  'raitem_id',  'rahead_number',      'cust_name',     'item_number',
-                     '', 'join rahead on raitem_rahead_id=rahead_id join custinfo on rahead_cust_id=cust_id ' ||
-                     'join itemsite on raitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id');
-select createDoctype(29, 'Q',    'Q',  'QU', 'Quote', 'quhead',  'quhead_id',  'quhead_number',      'cust_name', 'firstline(quhead_ordercomments)',
-                     '', 'join custinfo on quhead_cust_id = cust_id', 'quhead_id', 'salesOrder');
-select createDoctype(30, 'QI',   'QI', '',   'Quote Item', 'quitem',  'quitem_id',  'quhead_number',      'cust_name',     'item_number',
-                     '', 'join quhead on quitem_quhead_id=quhead_id join custinfo on quhead_cust_id=cust_id ' ||
-                     'join itemsite on quitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id');
-select createDoctype(31, 'S',    'S', 'SO', 'Sales Order', 'cohead',  'cohead_id',  'cohead_number',      'cust_name', 'firstline(cohead_ordercomments)',
-                     'core', 'join custinfo on cohead_cust_id = cust_id', 'sohead_id', 'salesOrder');
-select createDoctype(32, 'SI',   'SI', '',   'Sales Order Item', 'coitem',  'coitem_id',  'cohead_number',      'cust_name',     'item_number',
-                     '', 'join cohead on coitem_cohead_id=cohead_id join custinfo on cohead_cust_id=cust_id ' ||
-                     'join itemsite on coitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id');
-select createDoctype(33, 'SHP',  'SHP', '',    'Ship To', 'shipto',  'shipto_id',  'shipto_num',         'cust_name',     'shipto_name',
-                     '', 'join custinfo on shipto_cust_id=cust_id', 'shipto_id', 'shipTo');
-select createDoctype(34, 'TE',   'TE', '',   'Time Expense', 'tehead',  'tehead_id',  'tehead_number',      'emp_number', 'formatDate(tehead_weekending)',
-                     '', 'join emp on tehead_emp_id = emp_id', 'tehead_id', 'timeExpenseSheet');
-select createDoctype(35, 'TD', 'TODO', '',     'To-Do',               'todoitem','todoitem_id','todoitem_id::text',  'todoitem_name', 'firstline(todoitem_description)',
-                     '', '',     'todoitem_id', 'todoItem', 'MaintainPersonalToDoItems MaintainAllToDoItems');
-select createDoctype(36, 'TO',   'TO', '',   'Transfer Order',      'tohead',  'tohead_id',  'tohead_number',      's.warehous_code', 'd.warehous_code',
-                     '', 'join whsinfo s on tohead_src_warehous_id = s.warehous_id join whsinfo d on tohead_dest_warehous_id = d.warehous_id',
-                    'tohead_id', 'transferOrder');
-select createDoctype(37, 'TI',   'TI', '',   'Transfer Order Item', 'toitem',  'toitem_id',  'tohead_number',      'item_number',     'warehous_code',
-                     '', 'join tohead on toitem_tohead_id=tohead_id join whsinfo on tohead_dest_warehous_id=warehous_id join item on toitem_item_id=item_id');
-select createDoctype(38, 'V',    'V', 'V', 'Vendor', 'vendinfo','vend_id',    'vend_number',        'vend_name',    'firstline(vend_comments)',
-                     '', '',     'vend_id',      'vendor');
-select createDoctype(39, 'VCH',  'VCH', 'VCH', 'Voucher', 'vohead',  'vohead_id',  'vohead_number', 'vend_name',        'firstline(vohead_notes)',
-                     '', 'join vendinfo on vohead_vend_id=vend_id', 'vohead_id');
-select createDoctype(40, 'WH',   'WH', '',   'Site',       'whsinfo', 'warehous_id','warehous_code',         'warehous_descrip', 'NULL');
-select createDoctype(41, 'W',    'W', '',  'Work Order', 'wo',      'wo_id',      'formatWonumber(wo_id)', 'item_descrip1', 'item_descrip2',
-                     'core', 'join itemsite on wo_itemsite_id=itemsite_id join item on itemsite_item_id=item_id');
-select createDoctype(42, 'TA',   'TASK', 'TASK', 'Project Task', 'prjtask', 'prjtask_id', 'prjtask_number',      'prjtask_name','firstline(prjtask_descrip)',
-                     '', '', 'prjtask_id', 'task', '');
-select createDoctype(NULL, 'PSPCT',  'PSPCT',   '',        'Prospect',     'prospect','prospect_id','prospect_number', 'prospect_name', 'firstline(prospect_comments)');
-select createDoctype(NULL, 'SR',     'SR',      '',        'Sales Rep',    'salesrep','salesrep_id','salesrep_number', 'salesrep_name', 'NULL');
-select createDoctype(NULL, 'TAXAUTH','TAXAUTH', '',        'Tax Authority','taxauth', 'taxauth_id', 'taxauth_code',    'taxauth_name', 'taxauth_extref');
-select createDoctype(NULL, 'USR',    'USR',     '',        'User',         'usr',     'usr_id',     'usr_username',    'usr_propername','usr_email');
-select createDoctype(NULL, 'CT',     'CT',      'CT',      'Customer Type','custtype','custtype_id','custtype_code',   'custtype_code', 'custtype_descrip',
-                    '', '', 'custtype_id', 'customerType', '');
-select createDoctype(NULL, 'LSR',    'LSR',     '',        'Lot/Serial Registration','lsreg_id',    'lsreg_number',    'crmacct_number','firstline(lsreg_notes)',
-                    '', 'left outer join crmacct on lsreg_crmacct_id=crmacct_id', 'lsreg_id', 'lotSerialRegistration', '');
+                        'join custinfo on invchead_cust_id = cust_id join item on invcitem_item_id=item_id' --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(18, --pDocAssNum
+                     'I', --pType
+                     'I', --pDocAss
+                     'I', --pCharAss
+                     'Item', --pFull
+                     'item', --pTable
+                     'item_id', --pKey
+                     'item_number', --pNumber
+                     'firstline(item_descrip1)', --pName
+                     'firstline(item_descrip2)', --pDesc
+                     'core', --pWidget
+                     '', --pJoin
+                     'item_id', --pParam
+                     'item', --pUi
+                     '', --pPriv
+                     'Products' --pModule
+);
+select createDoctype(19, --pDocAssNum
+                     'IS', --pType
+                     'IS', --pDocAss
+                     '', --pCharAss
+                     'Item Site', --pFull
+                     'itemsite', --pTable
+                     'itemsite_id', --pKey
+                     'item_number', --pNumber
+                     'warehous_code', --pName
+                     'firstline(item_descrip1)', --pDesc
+                     '', --pWidget
+                     'join item on itemsite_item_id = item_id join whsinfo on itemsite_item_id = warehous_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Inventory' --pModule
+);
+select createDoctype(20, --pDocAssNum
+                     'IR', --pType
+                     'IR', --pDocAss
+                     '', --pCharAss
+                     'Item Source', --pFull
+                     'itemsrc', --pTable
+                     'itemsrc_id', --pKey
+                     'item_number', --pNumber
+                     'vend_name', --pName
+                     'firstline(item_descrip1)', --pDesc
+                     '', --pWidget
+                     'join item on itemsrc_item_id = item_id join vendinfo on itemsrc_vend_id = vend_id', --pJoin
+                     'itemsrc_id', --pParam
+                     'itemSource', --pUi
+                     '', --pPriv
+                     'Purchase' --pModule
+);
+select createDoctype(21, --pDocAssNum
+                     'L', --pType
+                     'L', --pDocAss
+                     '', --pCharAss
+                     'Location', --pFull
+                     'location', --pTable
+                     'location_id', --pKey
+                     'location_formatname', --pNumber
+                     'warehous_code', --pName
+                     'NULL', --pDesc
+                     '', --pWidget
+                     'join whsinfo on location_warehous_id = warehous_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Inventory' --pModule
+);
+select createDoctype(22, --pDocAssNum
+                     'LS', --pType
+                     'LS', --pDocAss
+                     'LS', --pCharAss
+                     'Lot/Serial', --pFull
+                     'ls', --pTable
+                     'ls_id', --pKey
+                     'ls_number', --pNumber
+                     'item_number', --pName
+                     'firstline(ls_notes)', --pDesc
+                     '', --pWidget
+                     'join item on ls_item_id = item_id', --pJoin
+                     'ls_id', --pParam
+                     'lotSerial', --pUi
+                     '', --pPriv
+                     'Inventory' --pModule
+);
+select createDoctype(23, --pDocAssNum
+                     'OPP', --pType
+                     'OPP', --pDocAss
+                     'OPP', --pCharAss
+                     'Opportunity', --pFull
+                     'ophead', --pTable
+                     'ophead_id', --pKey
+                     'ophead_id::text', --pNumber
+                     'ophead_name', --pName
+                     'firstline(ophead_notes)', --pDesc
+                     'core', --pWidget
+                     '', --pJoin
+                     'ophead_id', --pParam
+                     'opportunity', --pUi
+                     'MaintainPersonalOpportunities MaintainAllOpportunities', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(24, --pDocAssNum
+                     'J', --pType
+                     'J', --pDocAss
+                     'PROJ', --pCharAss
+                     'Project', --pFull
+                     'prj', --pTable
+                     'prj_id', --pKey
+                     'prj_number', --pNumber
+                     'prj_name', --pName
+                     'firstline(prj_descrip)', --pDesc
+                     'core', --pWidget
+                     '', --pJoin
+                     'prj_id', --pParam
+                     'project', --pUi
+                     'MaintainPersonalProjects MaintainAllProjects', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(25, --pDocAssNum
+                     'P', --pType
+                     'P', --pDocAss
+                     'PO', --pCharAss
+                     'Purchase Order', --pFull
+                     'pohead', --pTable
+                     'pohead_id', --pKey
+                     'pohead_number', --pNumber
+                     'vend_name', --pName
+                     'firstline(pohead_comments)', --pDesc
+                     'core', --pWidget
+                     'join vendinfo on pohead_vend_id = vend_id', --pJoin
+                     'pohead_id', --pParam
+                     'purchaseOrder', --pUi
+                     '', --pPriv
+                     'Purchase' --pModule
+);
+select createDoctype(26, --pDocAssNum
+                     'PI', --pType
+                     'PI', --pDocAss
+                     '', --pCharAss
+                     'Purchase Order Item', --pFull
+                     'poitem', --pTable
+                     'poitem_id', --pKey
+                     'pohead_number', --pNumber
+                     'vend_name', --pName
+                     'item_number', --pDesc
+                     '', --pWidget
+                     'join pohead on poitem_pohead_id=pohead_id join vendinfo on pohead_vend_id=vend_id ' ||
+                        'join itemsite on poitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Purchase' --pModule
+);
+select createDoctype(27, --pDocAssNum
+                     'RA', --pType
+                     'RA', --pDocAss
+                     '', --pCharAss
+                     'Return Authorization', --pFull
+                     'rahead', --pTable
+                     'rahead_id', --pKey
+                     'rahead_number', --pNumber
+                     'cust_name', --pName
+                     'firstline(rahead_notes)', --pDesc
+                     '', --pWidget
+                     'join custinfo on rahead_cust_id = cust_id', --pJoin
+                     'rahead_id', --pParam
+                     'purchaseOrder', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(28, --pDocAssNum
+                     'RI', --pType
+                     'RI', --pDocAss
+                     '', --pCharAss
+                     'Return Authorization Item', --pFull
+                     'raitem', --pTable
+                     'raitem_id', --pKey
+                     'rahead_number', --pNumber
+                     'cust_name', --pName
+                     'item_number', --pDesc
+                     '', --pWidget
+                     'join rahead on raitem_rahead_id=rahead_id join custinfo on rahead_cust_id=cust_id ' ||
+                        'join itemsite on raitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(29, --pDocAssNum
+                     'Q', --pType
+                     'Q', --pDocAss
+                     'QU', --pCharAss
+                     'Quote', --pFull
+                     'quhead', --pTable
+                     'quhead_id', --pKey
+                     'quhead_number', --pNumber
+                     'cust_name', --pName
+                     'firstline(quhead_ordercomments)', --pDesc
+                     '', --pWidget
+                     'join custinfo on quhead_cust_id = cust_id', --pJoin
+                     'quhead_id', --pParam
+                     'salesOrder', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(30, --pDocAssNum
+                     'QI', --pType
+                     'QI', --pDocAss
+                     '', --pCharAss
+                     'Quote Item', --pFull
+                     'quitem', --pTable
+                     'quitem_id', --pKey
+                     'quhead_number', --pNumber
+                     'cust_name', --pName
+                     'item_number', --pDesc
+                     '', --pWidget
+                     'join quhead on quitem_quhead_id=quhead_id join custinfo on quhead_cust_id=cust_id ' ||
+                        'join itemsite on quitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(31, --pDocAssNum
+                     'S', --pType
+                     'S', --pDocAss
+                     'SO', --pCharAss
+                     'Sales Order', --pFull
+                     'cohead', --pTable
+                     'cohead_id', --pKey
+                     'cohead_number', --pNumber
+                     'cust_name', --pName
+                     'firstline(cohead_ordercomments)', --pDesc
+                     'core', --pWidget
+                     'join custinfo on cohead_cust_id = cust_id', --pJoin
+                     'sohead_id', --pParam
+                     'salesOrder', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(32, --pDocAssNum
+                     'SI', --pType
+                     'SI', --pDocAss
+                     '', --pCharAss
+                     'Sales Order Item', --pFull
+                     'coitem', --pTable
+                     'coitem_id', --pKey
+                     'cohead_number', --pNumber
+                     'cust_name', --pName
+                     'item_number', --pDesc
+                     '', --pWidget
+                     'join cohead on coitem_cohead_id=cohead_id join custinfo on cohead_cust_id=cust_id ' ||
+                        'join itemsite on coitem_itemsite_id=itemsite_id join item on itemsite_item_id=item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(33, --pDocAssNum
+                     'SHP', --pType
+                     'SHP', --pDocAss
+                     '', --pCharAss
+                     'Ship To', --pFull
+                     'shipto', --pTable
+                     'shipto_id', --pKey
+                     'shipto_num', --pNumber
+                     'cust_name', --pName
+                     'shipto_name', --pDesc
+                     '', --pWidget
+                     'join custinfo on shipto_cust_id=cust_id', --pJoin
+                     'shipto_id', --pParam
+                     'shipTo', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(34, --pDocAssNum
+                     'TE', --pType
+                     'TE', --pDocAss
+                     '', --pCharAss
+                     'Time Expense', --pFull
+                     'tehead', --pTable
+                     'tehead_id', --pKey
+                     'tehead_number', --pNumber
+                     'emp_number', --pName
+                     'formatDate(tehead_weekending)', --pDesc
+                     '', --pWidget
+                     'join emp on tehead_emp_id = emp_id', --pJoin
+                     'tehead_id', --pParam
+                     'timeExpenseSheet', --pUi
+                     '' --pPriv
+                     'TE' --pModule
+);
+select createDoctype(35, --pDocAssNum
+                     'TD', --pType
+                     'TODO', --pDocAss
+                     '', --pCharAss
+                     'To-Do', --pFull
+                     'todoitem', --pTable
+                     'todoitem_id', --pKey
+                     'todoitem_id::text', --pNumber
+                     'todoitem_name', --pName
+                     'firstline(todoitem_description)', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     'todoitem_id', --pParam
+                     'todoItem', --pUi
+                     'MaintainPersonalToDoItems MaintainAllToDoItems', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(36, --pDocAssNum
+                     'TO', --pType
+                     'TO', --pDocAss
+                     '', --pCharAss
+                     'Transfer Order', --pFull
+                     'tohead', --pTable
+                     'tohead_id', --pKey
+                     'tohead_number', --pNumber
+                     's.warehous_code', --pName
+                     'd.warehous_code', --pDesc
+                     '', --pWidget
+                     'join whsinfo s on tohead_src_warehous_id = s.warehous_id join whsinfo d on tohead_dest_warehous_id = d.warehous_id', --pJoin
+                     'tohead_id', --pParam
+                     'transferOrder', --pUi
+                     '', --pPriv
+                     'Inventory' --pModule
+);
+select createDoctype(37, --pDocAssNum
+                     'TI', --pType
+                     'TI', --pDocAss
+                     '', --pCharAss
+                     'Transfer Order Item', --pFull
+                     'toitem', --pTable
+                     'toitem_id', --pKey
+                     'tohead_number', --pNumber
+                     'item_number', --pName
+                     'warehous_code', --pDesc
+                     '', --pWidget
+                     'join tohead on toitem_tohead_id=tohead_id join whsinfo on tohead_dest_warehous_id=warehous_id join item on toitem_item_id=item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Inventory' --pModule
+);
+select createDoctype(38, --pDocAssNum
+                     'V', --pType
+                     'V', --pDocAss
+                     'V', --pCharAss
+                     'Vendor', --pFull
+                     'vendinfo', --pTable
+                     'vend_id', --pKey
+                     'vend_number', --pNumber
+                     'vend_name', --pName
+                     'firstline(vend_comments)', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     'vend_id', --pParam
+                     'vendor', --pUi
+                     '', --pPriv
+                     'Purchase' --pModule
+);
+select createDoctype(39, --pDocAssNum
+                     'VCH', --pType
+                     'VCH', --pDocAss
+                     'VCH', --pCharAss
+                     'Voucher', --pFull
+                     'vohead', --pTable
+                     'vohead_id', --pKey
+                     'vohead_number', --pNumber
+                     'vend_name', --pName
+                     'firstline(vohead_notes)', --pDesc
+                     '', --pWidget
+                     'join vendinfo on vohead_vend_id=vend_id', --pJoin
+                     'vohead_id', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Purchase' --pModule
+);
+select createDoctype(40, --pDocAssNum
+                     'WH', --pType
+                     'WH', --pDocAss
+                     '', --pCharAss
+                     'Site', --pFull
+                     'whsinfo', --pTable
+                     'warehous_id', --pKey
+                     'warehous_code', --pNumber
+                     'warehous_descrip', --pName
+                     'NULL', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Inventory' --pModule
+);
+select createDoctype(41, --pDocAssNum
+                     'W', --pType
+                     'W', --pDocAss
+                     '', --pCharAss
+                     'Work Order', --pFull
+                     'wo', --pTable
+                     'wo_id', --pKey
+                     'formatWonumber(wo_id)', --pNumber
+                     'item_descrip1', --pName
+                     'item_descrip2', --pDesc
+                     'core', --pWidget
+                     'join itemsite on wo_itemsite_id=itemsite_id join item on itemsite_item_id=item_id', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Manufacture' --pModule
+);
+select createDoctype(42, --pDocAssNum
+                     'TA', --pType
+                     'TASK', --pDocAss
+                     'TASK', --pCharAss
+                     'Project Task', --pFull
+                     'prjtask', --pTable
+                     'prjtask_id', --pKey
+                     'prjtask_number', --pNumber
+                     'prjtask_name', --pName
+                     'firstline(prjtask_descrip)', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     'prjtask_id', --pParam
+                     'task', --pUi
+                     '', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(NULL, --pDocAssNum
+                     'PSPCT', --pType
+                     'PSPCT', --pDocAss
+                     '', --pCharAss
+                     'Prospect', --pFull
+                     'prospect', --pTable
+                     'prospect_id', --pKey
+                     'prospect_number', --pNumber
+                     'prospect_name', --pName
+                     'firstline(prospect_comments)', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'CRM' --pModule
+);
+select createDoctype(NULL, --pDocAssNum
+                     'SR', --pType
+                     'SR', --pDocAss
+                     '', --pCharAss
+                     'Sales Rep', --pFull
+                     'salesrep', --pTable
+                     'salesrep_id', --pKey
+                     'salesrep_number', --pNumber
+                     'salesrep_name', --pName
+                     'NULL', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(NULL, --pDocAssNum
+                     'TAXAUTH', --pType
+                     'TAXAUTH', --pDocAss
+                     '', --pCharAss
+                     'Tax Authority', --pFull
+                     'taxauth', --pTable
+                     'taxauth_id', --pKey
+                     'taxauth_code', --pNumber
+                     'taxauth_name', --pName
+                     'taxauth_extref', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     '', --pParam
+                     '', --pPriv
+                     'Accounting' --pModule
+);
+select createDoctype(NULL, --pDocAssNum
+                     'USR', --pType
+                     'USR', --pDocAss
+                     '', --pCharAss
+                     'User', --pFull
+                     'usr', --pTable
+                     'usr_id', --pKey
+                     'usr_username', --pNumber
+                     'usr_propername', --pName
+                     'usr_email', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     '', --pParam
+                     '', --pUi
+                     '', --pPriv
+                     'System' --pModule
+);
+select createDoctype(NULL, --pDocAssNum
+                     'CT', --pType
+                     'CT', --pDocAss
+                     'CT', --pCharAss
+                     'Customer Type', --pFull
+                     'custtype', --pTable
+                     'custtype_id', --pKey
+                     'custtype_code', --pNumber
+                     'custtype_code', --pName
+                     'custtype_descrip', --pDesc
+                     '', --pWidget
+                     '', --pJoin
+                     'custtype_id', --pParam
+                     'customerType', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);
+select createDoctype(NULL, --pDocAssNum
+                     'LSR', --pType
+                     'LSR', --pDocAss
+                     '', --pCharAss
+                     'Lot/Serial Registration', --pFull
+                     'lsreg', --pTable
+                     'lsreg_id', --pKey
+                     'lsreg_number', --pNumber
+                     'crmacct_number', --pName
+                     'firstline(lsreg_notes)', --pDesc
+                     '', --pWidget
+                     'left outer join crmacct on lsreg_crmacct_id=crmacct_id', --pJoin
+                     'lsreg_id', --pParam
+                     'lotSerialRegistration', --pUi
+                     '', --pPriv
+                     'Sales' --pModule
+);

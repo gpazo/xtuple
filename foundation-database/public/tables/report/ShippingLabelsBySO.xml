@@ -11,24 +11,34 @@
  <leftmargin>100</leftmargin>
  <querysource>
   <name>detail</name>
-  <sql>SELECT sequence_value,&#xd;
-       cust_number,&#xd;
-       cohead_number,&#xd;
-&#xd;
-formataddr(cohead_shiptoaddress1, cohead_shiptoaddress2, cohead_shiptoaddress3, (cohead_shiptocity || '  ' ||   cohead_shiptostate || '  ' || cohead_shiptozipcode), cohead_shiptocountry) AS shipping_address,           &#xd;
-&#xd;
-&#xd;
-       cohead_custponumber,&#xd;
-       cohead_shiptoname,&#xd;
-       cohead_shiptoaddress1,&#xd;
-       cohead_shiptoaddress2,&#xd;
-       cohead_shiptoaddress3,&#xd;
-       (COALESCE(cohead_shiptocity,'') || ' ' || COALESCE(cohead_shiptostate,'') || ' ' || COALESCE(cohead_shiptozipcode,'')) AS citystatezip&#xd;
-FROM cohead, custinfo, sequence&#xd;
-WHERE ( (cohead_cust_id=cust_id)&#xd;
- AND (sequence_value BETWEEN &lt;? value("labelFrom") ?> AND &lt;? value("labelTo") ?>)&#xd;
- AND (cohead_id=&lt;? value("sohead_id") ?>) )&#xd;
-LIMIT &lt;? value("labelTo") ?>;&#xd;
+  <sql>SELECT sequence_value,
+       cust_number,
+       cohead_number,
+
+formataddr(cohead_shiptoaddress1, cohead_shiptoaddress2, cohead_shiptoaddress3, (cohead_shiptocity || '  ' ||   cohead_shiptostate || '  ' || cohead_shiptozipcode), cohead_shiptocountry) AS shipping_address,           
+
+
+       cohead_custponumber,
+       cohead_shiptoname,
+       cohead_shiptoaddress1,
+       cohead_shiptoaddress2,
+       cohead_shiptoaddress3,
+       (COALESCE(cohead_shiptocity,'') || ' ' || COALESCE(cohead_shiptostate,'') || ' ' || COALESCE(cohead_shiptozipcode,'')) AS citystatezip
+FROM cohead
+&lt;? if exists("soitem_id") ?>
+  JOIN coitem ON cohead_id = coitem_cohead_id
+&lt;? endif ?>,
+  custinfo, sequence
+WHERE ( (cohead_cust_id=cust_id)
+&lt;? if exists("labelFrom") ?>
+ AND (sequence_value BETWEEN &lt;? value("labelFrom") ?> AND &lt;? value("labelTo") ?>)
+&lt;? endif ?>
+ AND (cohead_id=&lt;? value("sohead_id") ?>)
+&lt;? if exists("soitem_id") ?>
+ AND (coitem_id = &lt;? value("soitem_id") ?>)
+&lt;? endif ?>
+)
+LIMIT &lt;? value("labelTo") ?>;
        </sql>
  </querysource>
  <section>

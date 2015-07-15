@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION postVoucher(INTEGER, BOOLEAN) RETURNS INTEGER AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple.
 -- See www.xtuple.com/CPAL for the full text of the software license.
 DECLARE
   pVoheadid ALIAS FOR $1;
@@ -12,7 +12,7 @@ $$ LANGUAGE 'plpgsql';
 
 
 CREATE OR REPLACE FUNCTION postVoucher(INTEGER, INTEGER, BOOLEAN) RETURNS INTEGER AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple.
 -- See www.xtuple.com/CPAL for the full text of the software license.
 DECLARE
   pVoheadid ALIAS FOR $1;
@@ -207,10 +207,10 @@ BEGIN
                            AS value_base,
 			   (poitem_freight_received - poitem_freight_vouchered) /
 			       (poitem_qty_received - poitem_qty_vouchered) * voitem_qty AS vouchered_freight,
-                            currToBase(_p.pohead_curr_id,
-				       (poitem_freight_received - poitem_freight_vouchered) /
-				       (poitem_qty_received - poitem_qty_vouchered) * voitem_qty,
-				        _firstExchDateFreight ) AS vouchered_freight_base,
+                           currToBase(_p.pohead_curr_id,
+			             (poitem_freight_received - poitem_freight_vouchered) /
+		                     (poitem_qty_received - poitem_qty_vouchered) * voitem_qty,
+				     _firstExchDateFreight ) AS vouchered_freight_base,
 			    voitem_freight,
 			    currToBase(_p.vohead_curr_id, voitem_freight,
                                        _p.vohead_distdate) AS voitem_freight_base

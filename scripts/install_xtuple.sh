@@ -210,12 +210,12 @@ setup_postgres() {
 	sudo service postgresql restart
 
   log "dropping existing db, if any..."
-	sudo -u postgres dropdb $DATABASE || true
+	dropdb --if-exists -U postgres $DATABASE
 
 	cdir $BASEDIR/postgres
 
   log "Setup database"
-	sudo -u postgres psql -q -f $XT_DIR/lib/orm/source/init.sql 2>&1 | tee -a $LOG_FILE
+	psql -U postgres -q -f $XT_DIR/lib/orm/source/init.sql 2>&1 | tee -a $LOG_FILE
 }
 
 init_everythings() {

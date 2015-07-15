@@ -1,6 +1,6 @@
 
 CREATE OR REPLACE FUNCTION postARCreditMemoApplication(pAropenid INTEGER) RETURNS INTEGER AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple. 
 -- See www.xtuple.com/CPAL for the full text of the software license.
 BEGIN
   RETURN postARCreditMemoApplication(pAropenid, CURRENT_DATE);
@@ -132,7 +132,7 @@ BEGIN
     SELECT insertGLTransaction(fetchJournalNumber('AR-MISC'), 'A/R',
                                'CD', _p.aropen_docnumber, 'CM Application',
                                cr.accnt_id, db.accnt_id,
-                               -1, currToBase(_p.aropen_curr_id, _totalSource, _p.aropen_docdate),
+                               -1, (_totalSource / _p.aropen_curr_rate),
                                _applyDate)
       INTO _result
       FROM accnt AS cr, accnt AS db

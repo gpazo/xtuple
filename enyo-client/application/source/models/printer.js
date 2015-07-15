@@ -18,8 +18,7 @@ white:true*/
 
     documentKey: 'name',
 
-    nameAttribute: 'name'
-
+    enforceUpperKey: false
 
   });
 

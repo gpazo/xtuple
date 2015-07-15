@@ -1,11 +1,6 @@
--- Function: postreceipt(integer, integer)
-
--- DROP FUNCTION postreceipt(integer, integer);
-
 CREATE OR REPLACE FUNCTION postreceipt(integer, integer)
-  RETURNS integer AS
-$BODY$
--- Copyright (c) 1999-2011 by OpenMFG LLC, d/b/a xTuple. 
+  RETURNS integer AS $$
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple.
 -- See www.xtuple.com/CPAL for the full text of the software license.
 DECLARE
   precvid		ALIAS FOR $1;
@@ -183,7 +178,7 @@ BEGIN
 
     UPDATE poitem
     SET poitem_qty_received = (poitem_qty_received + _r.recv_qty),
-	poitem_freight_received = (poitem_freight_received + _r.recv_freight_base)
+	poitem_freight_received = (poitem_freight_received + _r.recv_freight)
     WHERE (poitem_id=_o.orderitem_id);
 
   ELSEIF ( (_r.recv_order_type = 'RA') AND
@@ -282,7 +277,7 @@ BEGIN
 
       UPDATE poitem
       SET poitem_qty_received = (poitem_qty_received + _r.recv_qty),
-	  poitem_freight_received = (poitem_freight_received + _r.recv_freight_base)
+	  poitem_freight_received = (poitem_freight_received + _r.recv_freight)
       WHERE (poitem_id=_o.orderitem_id);
 
     ELSIF (_r.recv_order_type = 'RA') THEN
@@ -606,8 +601,6 @@ BEGIN
   RETURN _itemlocSeries;
 
 END;
-$BODY$
-  LANGUAGE plpgsql VOLATILE
-  COST 100;
-ALTER FUNCTION postreceipt(integer, integer)
-  OWNER TO admin;
+$$ LANGUAGE 'plpgsql';
+
+ALTER FUNCTION postreceipt(integer, integer) OWNER TO admin;

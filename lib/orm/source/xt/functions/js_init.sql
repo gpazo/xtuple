@@ -366,7 +366,7 @@ return (function () {
       /* This error was handled and a message sent to the client. Those massages are*/
       /* generic HTTP codes. Send the stack trace with detailed info on what happened. */
       XT.debug(message);
-      XT.message(error.code, error.message)
+      XT.message(error.code, error.message.substring(0, 900));
       throw "handledError";
     } else {
       /* Some times the stack trace can eat up the full 1000 char message. */

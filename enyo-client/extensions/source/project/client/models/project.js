@@ -155,8 +155,10 @@ white:true*/
       },
 
       projectTypeDidChange: function () {
-        this.inheritWorkflowSource(this.get("projectType"), "XM.ProjectCharacteristic",
-          "XM.ProjectWorkflow");
+        if (!XT.session.settings.get("TriggerWorkflow")) {
+          this.inheritWorkflowSource(this.get("projectType"), "XM.ProjectCharacteristic",
+            "XM.ProjectWorkflow");
+        }
       },
 
       /**

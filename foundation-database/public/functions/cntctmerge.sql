@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION cntctmerge(integer, integer, boolean) RETURNS boolean AS $$
--- Copyright (c) 1999-2014 by OpenMFG LLC, d/b/a xTuple. 
+-- Copyright (c) 1999-2015 by OpenMFG LLC, d/b/a xTuple.
 -- See www.xtuple.com/CPAL for the full text of the software license.
 DECLARE
   pSourceCntctId ALIAS FOR $1;
@@ -202,7 +202,7 @@ BEGIN
     IF (SELECT (COUNT(cntctmrgd_cntct_id) = 0) 
         FROM cntctmrgd
         WHERE (cntctmrgd_cntct_id=pSourceCntctId)) THEN
-      INSERT INTO cntctmrgd VALUES (pSourceCntctId,false);
+      INSERT INTO cntctmrgd (cntctmrgd_cntct_id, cntctmrgd_error) VALUES (pSourceCntctId,false);
     END IF;
   END IF;
 

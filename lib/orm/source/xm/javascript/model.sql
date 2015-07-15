@@ -53,38 +53,55 @@ select xt.install_js('XM','Model','xtuple', $$
     @param {String} uuid
     @returns Number
   */
-  XM.Model.fetchPrimaryKeyId = function (uuid) {
-    var tableName,
-      sql1 = "select tblname as tblname " +
-           "from xt.obj_uuid as o " +
-           "where obj_uuid = $1;",
-      sql2 = "select {table}_id as id " +
-           "from {table} where obj_uuid = $1;",
+  XM.Model.fetchPrimaryKeyId = function (options) {
+    var schema = "public",
+      tableName,
+      sql,
+      sql1 = "SELECT tblname AS tblname " +
+        "FROM xt.obj_uuid WHERE obj_uuid = $1;",
+      sql2 = "SELECT {table}_id AS id " +
+        "FROM {table} WHERE obj_uuid = $1;",
       id,
-      ids = [];
+      lineItemId;
 
-    if (typeof arguments[0] !== "object") {
-      ary = [{uuid: uuid}];
-    } else {
-      ary = arguments;
-    }
-
-    for (i = 0; i < ary.length; i++) {
-      item = ary[i];
-
-      tableName = plv8.execute(sql1, [item.uuid])[0];
+    if (options.docUuid) {
+      tableName = plv8.execute(sql1, [options.docUuid])[0];
       if (!tableName) {
-        throw new handleError("UUID not found", 400);
+        return plv8.elog(ERROR, "UUID " + options.docUuid + " not found in xt.obj_uuid table");
       }
-      
-      id = plv8.execute(sql2.replace(/{table}/g, tableName.tblname), [item.uuid])[0].id;
-      ids.push(id);
+      /* This could possibly be replaced with a query that doesn't depend on the xt.obj_uuid table */
+      id = plv8.execute(sql2.replace(/{table}/g, tableName.tblname), [options.docUuid])[0].id;
     }
-    if (ary.length > 1) {
-      return ids;
-    } else {
-      return id;
+
+    if (options.lineItemUuid) {
+      tableName = plv8.execute(sql1, [options.lineItemUuid])[0];
+      if (!tableName) {
+        return plv8.elog(ERROR, "UUID " + options.lineItemUuid + " not found in xt.obj_uuid table");
+      }
+      lineItemId = plv8.execute(sql2.replace(/{table}/g, tableName.tblname), [options.lineItemUuid])[0].id;
     }
+
+    if (options.docNumber && options.table && options.column) {
+      /* Handle xt.<tableName> */
+      if (options.table.indexOf('.') !== -1) {
+        schema = options.table.split(".")[0];
+        options.table = options.table.split(".")[1];
+      }
+      sql = "SELECT {table}_id AS id FROM {schema}.{table} WHERE {column} = $1"
+        .replace(/{schema}/g, schema)
+        .replace(/{table}/g, options.table)
+        .replace(/{column}/, options.column);
+
+      id = plv8.execute(sql, [options.docNumber])[0].id;
+    }
+
+    if (!id) {
+      throw new handleError("id not found", 400);
+    }
+    if (lineItemId && id) {
+      return {lineItemId: lineItemId, id: id}
+    }
+    return id;
   },
 
   /**

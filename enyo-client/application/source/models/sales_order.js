@@ -85,31 +85,49 @@ white:true*/
 
     getPrintParameters: function (callback) {
       var that = this,
-        dispOptions = {};
+        dispOptions = {},
+        dispParams = {
+          docNumber: this.id,
+          table: "cohead",
+          column: "cohead_number"
+        };
 
       dispOptions.success = function (resp) {
-        var id = resp;
+        var id = resp,
+        printParameters = [
+          {name: "sohead_id", type: "integer", value: id},
+          {name: "hide closed", type: "boolean", value: "true"}
+          // Optional. TODO - What should determine warehouse id?
+          //{name: "warehous_id", type: "integer", value: null} 
+        ];
+        /* 
+          TODO - set printParameters according to the Report's req. parameters, i.e. PackingList:
+        if (that.reportName === "PackingList") {
+          printParameters.push(
+            {name: "shiphead_id", type: "integer", value: },
+            {name: "head_id", type: "integer", value: },
+            {name: "head_type", type: "string", value: },
+            {name: "MultiWhs", type: "boolean", value: },
+            {name: "warehouse_id", type: integer, value: }
+          );
+        }
+        */
 
         callback({
           id: id,
           reportName: that.reportName || "CustOrderAcknowledgement",
-          printParameters: [
-            {name: "sohead_id", type: "integer", value: id},
-            {name: "hide closed", type: "boolean", value: "true"}
-            // Optional. TODO - What should determine warehouse id?
-            //{name: "warehous_id", type: "integer", value: null} 
-          ]
+          printParameters: printParameters
         });
       };
 
-      if (that.customerForm) {
-        this.dispatch("XM.Sales", "findCustomerForm", [this.getValue("customer.uuid"), that.customerFormName], {success: function (resp) {
+      if (that.custFormType) {
+        this.dispatch("XM.Sales", "findCustomerForm", [this.getValue("customer.uuid"), that.custFormType], {success: function (resp) {
           that.reportName = resp;
           
-          that.dispatch('XM.Model', 'fetchPrimaryKeyId', this.getValue("uuid"), dispOptions);
+          that.dispatch('XM.Model', 'fetchPrimaryKeyId', dispParams, dispOptions);
         }});
       } else {
-        that.dispatch('XM.Model', 'fetchPrimaryKeyId', this.getValue("uuid"), dispOptions);
+        that.dispatch('XM.Model', 'fetchPrimaryKeyId', dispParams, dispOptions);
       }
     },
 
@@ -129,8 +147,10 @@ white:true*/
         currentHoldType = this.get("holdType"),
         defaultHoldType = this.getValue("saleType.defaultHoldType") || null;
 
-      this.inheritWorkflowSource(this.get("saleType"), "XM.SalesOrderCharacteristic",
-        "XM.SalesOrderWorkflow");
+      if (!XT.session.settings.get("TriggerWorkflow")) {
+        this.inheritWorkflowSource(this.get("saleType"), "XM.SalesOrderCharacteristic",
+          "XM.SalesOrderWorkflow");
+      }
 
       if (this.getStatus() === XM.Model.EMPTY) {
         // on a new order, set the hold type to the sale type default
@@ -323,7 +343,9 @@ white:true*/
 
     recordType: 'XM.SalesOrderListItem',
 
-    editableModel: 'XM.SalesOrder'
+    editableModel: 'XM.SalesOrder',
+
+    getPrintParameters: XM.SalesOrder.prototype.getPrintParameters
 
   });
 

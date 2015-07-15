@@ -18,6 +18,8 @@ regexp:true, undef:true, strict:true, trailing:true, white:true */
       return path.join(__dirname, "../../../../private-extensions/source", name);
     } else if (location === 'npm') {
       return path.join(__dirname, "../../../node_modules", name);
+    } else if (location !== 'not-applicable') {
+      return path.join(__dirname, "../../../..", location);
     }
   };
 

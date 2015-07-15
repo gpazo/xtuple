@@ -33,7 +33,7 @@ BEGIN
    WHERE        
      (pg_locks.objsubid = 2)
      AND (pg_stat_activity.datname = current_database())
-     AND CASE WHEN (trim(coalesce(pApplicationName, '')) = '') THEN true ELSE application_name = pApplicationName END;
+     AND CASE WHEN (trim(coalesce(pAppName, '')) = '') THEN true ELSE application_name = pAppName END;
   END IF;
 
   IF (_count IS NULL) THEN

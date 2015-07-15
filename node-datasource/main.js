@@ -118,7 +118,15 @@ var express = require('express'),
       "/core-extensions": X.path.join(__dirname, "../enyo-client/extensions/source", extension.name),
       "npm": X.path.join(__dirname, "../node_modules", extension.name)
     };
-    return dirMap[extension.location];
+
+    if (dirMap[extension.location]) {
+      return dirMap[extension.location];
+    } else if (extension.location !== 'not-applicable') {
+      return X.path.join(__dirname, "../..", extension.location);
+    } else {
+      X.err("Cannot get a path for extension: " + extension.name + " Invalid location: " + extension.location);
+      return;
+    }
   };
   var useClientDir = X.useClientDir = function (path, dir) {
     path = path.indexOf("npm") === 0 ? "/" + path : path;

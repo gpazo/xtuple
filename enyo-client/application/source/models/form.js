@@ -41,6 +41,65 @@ white:true*/
 
   });
 
+  _.extend(XM.Form, {
+     /** @scope XM.Form */
+
+    /**
+      Credit memo form type.
+      @static
+      @constant
+      @type String
+      @default C
+    */
+    CREDIT_MEMO: 'C',
+
+    /**
+      Invoice form type
+      @static
+      @constant
+      @type String
+      @default I
+    */
+    INVOICE: 'I',
+
+    /**
+      Statement form type
+      @static
+      @constant
+      @type String
+      @default S
+    */
+    STATEMENT: 'S',
+
+    /**
+      Quote form type
+      @static
+      @constant
+      @type String
+      @default Q
+    */
+    QUOTE: 'Q',
+
+    /**
+      Packlist form type.
+      @static
+      @constant
+      @type String
+      @default P
+    */
+    PACK_LIST: 'P',
+
+    /**
+      Picklist form type
+      @static
+      @constant
+      @type String
+      @default L
+    */
+    PICK_LIST: 'L'
+
+  });
+
   /**
     @class
 
@@ -76,7 +135,6 @@ white:true*/
     keepInHistory: false
 
   });
-
 
   // ..........................................................
   // COLLECTIONS

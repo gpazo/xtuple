@@ -558,7 +558,12 @@ white:true*/
         dispOptions = {},
         billing = new XM.Billing(),
         invcShowPricesMetric,
-        reportName;
+        reportName,
+        dispParams = {
+          docNumber: this.id,
+          table: "invchead",
+          column: "invchead_invcnumber"
+        };
 
       dispOptions.success = function (resp) {
         var id = resp;
@@ -573,13 +578,13 @@ white:true*/
         });
       };
 
-      this.dispatch("XM.Sales", "findCustomerForm", [this.getValue("customer.uuid"), "I"], {success: function (resp) {
+      this.dispatch("XM.Sales", "findCustomerForm", [this.getValue("customer.uuid"), XM.Form.INVOICE], {success: function (resp) {
         reportName = resp;
         
         billing.fetch({success: function (resp) {
           invcShowPricesMetric = resp.getValue("InvoiceShowPrices") || resp.getValue("InvoiceShowPrices0");
           
-          that.dispatch('XM.Model', 'fetchPrimaryKeyId', that.getValue("uuid"), dispOptions);
+          that.dispatch('XM.Model', 'fetchPrimaryKeyId', dispParams, dispOptions);
         }});
       }});
     }
@@ -670,36 +675,8 @@ white:true*/
       });
     },
 
-    getPrintParameters: function (callback) {
-      var that = this,
-        dispOptions = {},
-        billing = new XM.Billing(),
-        invcShowPricesMetric,
-        reportName;
+    getPrintParameters: XM.Invoice.prototype.getPrintParameters
 
-      dispOptions.success = function (resp) {
-        var id = resp;
-
-        callback({
-          id: id,
-          reportName: reportName,
-          printParameters: [
-            {name: "invchead_id", type: "integer", value: id},
-            {name: "showcosts", type: "boolean", value: invcShowPricesMetric.toString()}
-          ]
-        });
-      };
-
-      this.dispatch("XM.Sales", "findCustomerForm", [this.getValue("customer.uuid"), "I"], {success: function (resp) {
-        reportName = resp;
-        
-        billing.fetch({success: function (resp) {
-          invcShowPricesMetric = resp.getValue("InvoiceShowPrices") || resp.getValue("InvoiceShowPrices0");
-          
-          that.dispatch('XM.Model', 'fetchPrimaryKeyId', that.getValue("uuid"), dispOptions);
-        }});
-      }});
-    }
   });
 
   /**
