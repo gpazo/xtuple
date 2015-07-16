@@ -1,5 +1,5 @@
 <package id        = "distribution-install-490"
-         version   = "4.9.0"
+         version   = "4.9.1"
          developer = "xTuple"
          descrip   = "load PostBooks resources"
          updater   = "2.2.4" >
@@ -19,8 +19,8 @@
 
   <prerequisite type = "query"
                 name = "Checking for too-new xTuple ERP database version" >
-    <query>SELECT compareVersion(fetchMetricText('ServerVersion'), '4.9.1') = -1;</query>
-    <message>This package may not be applied to a database newer than 4.9.0.
+    <query>SELECT compareVersion(fetchMetricText('ServerVersion'), '4.9.2') = -1;</query>
+    <message>This package may not be applied to a database newer than 4.9.1.
     </message>
   </prerequisite>
 
